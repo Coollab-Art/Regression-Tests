@@ -66,7 +66,15 @@ def process_difference(diff: np.ndarray, img_reference: np.ndarray, img_comparis
     }
 
 def process_difference_2(diff: np.ndarray, img_reference: np.ndarray, img_comparison: np.ndarray) -> dict[str, np.ndarray]:
-    _, thresh = cv2.threshold(diff, 10, 255, cv2.THRESH_BINARY)  # adjust second parameter for sensitivity
+    diff = cv2.equalizeHist(diff)
+    _, thresh = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)  # adjust second parameter for sensitivity
+    # thresh = cv2.adaptiveThreshold(
+    #     diff, 255,
+    #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    #     cv2.THRESH_BINARY,
+    #     blockSize=11,  # taille locale (doit être impair)
+    #     C=2            # à ajuster (plus haut = moins sensible)
+    # )
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
@@ -82,7 +90,7 @@ def process_difference_2(diff: np.ndarray, img_reference: np.ndarray, img_compar
         area = cv2.contourArea(c)
         if area > 1:
             x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(outlined, (x, y), (x + w, y + h), (36, 255, 12), 2)
+            cv2.rectangle(outlined, (x, y), (x + w, y + h), (36, 255, 12), 1)
             cv2.drawContours(mask, [c], 0, (0, 255, 0), -1)
             cv2.drawContours(filled, [c], 0, (0, 255, 0), -1)
 
@@ -157,5 +165,15 @@ def show_diff(result_diff: dict[str, np.ndarray], img_reference: np.ndarray = No
     if img_reference is not None:
         cv2.imshow("Reference Image", img_reference)
     cv2.imshow("Difference Image", result_diff['thresh'])
+    # cv2.imshow("img_reference", img_reference)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+def show_test(result_diff: dict[str, np.ndarray], img_reference: np.ndarray, img_comparison: np.ndarray) -> None:
+    cv2.imshow("Original Image", img_reference)
+    cv2.imshow("Altered Image", img_comparison)
+    cv2.imshow("Difference Image", result_diff['thresh'])
+    cv2.imshow("Mask Image", result_diff['mask'])
+    cv2.imshow("Filled Image", result_diff['filled'])
+    cv2.imshow("Outlined Image", result_diff['outlined'])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
