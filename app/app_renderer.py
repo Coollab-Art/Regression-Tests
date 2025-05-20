@@ -1,6 +1,8 @@
 import flet as ft
+from TestPanel import TestPanel
+from PreviewPanel import PreviewPanel
 
-def main(page: ft.Page):
+def test(page: ft.Page):
     page.title = "Coollab regression test"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
@@ -43,5 +45,38 @@ def main(page: ft.Page):
         ]),
         ft.Row([new_task, ft.ElevatedButton("Add", on_click=add_clicked)])
     )
+
+def main(page: ft.Page):
+    page.title = "Coollab regression test"
+    page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
+    page.vertical_alignment = ft.MainAxisAlignment.START
+    page.spacing = 0
+    page.padding = 0
+
+    left_container = TestPanel(page.height)
+    right_container = PreviewPanel(page.height)
+    def resize_handler(e):
+        left_container.height = page.height
+        right_container.height = page.height
+        left_container.update()
+        right_container.update()
+    page.on_resized = resize_handler
+
+    page.add(
+        ft.Container(
+            expand=True,
+            gradient = ft.RadialGradient(
+                colors=["#A878BC", "#6568F2"],
+                center=ft.alignment.bottom_right,
+                radius=1.6,
+            ),
+            content=ft.ResponsiveRow(
+                [left_container, right_container],
+                run_spacing=0,
+                spacing=0,
+            ),
+        )
+    )
+    resize_handler(None)
 
 ft.app(main)
