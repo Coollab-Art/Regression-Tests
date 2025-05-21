@@ -1,49 +1,39 @@
-import os
-import sys
-import time
-import random
-import subprocess
-import time
-from img_handler import (
-    load_img,
+import flet as ft
+from app.TestPanel import TestPanel
+from app.PreviewPanel import PreviewPanel
 
-    calculate_similarity,
-    calculate_similarity_2,
+def main(page: ft.Page):
+    page.title = "Coollab regression test"
+    page.theme_mode = ft.ThemeMode.DARK
+    page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
+    page.vertical_alignment = ft.MainAxisAlignment.START
+    page.spacing = 0
+    page.padding = 0
 
-    process_difference,
-    process_difference_2,
-    process_difference_3,
+    left_container = TestPanel(page.height)
+    right_container = PreviewPanel(page.height)
+    def resize_handler(e):
+        left_container.height = page.height
+        right_container.height = page.height
+        left_container.update()
+        right_container.update()
+    page.on_resized = resize_handler
 
-    show_all_diff,
-    show_diff,
-    show_mask,
-    show_outlined,
-    show_test,
-)
-
-def main() -> None:
-    # img_comparison = load_img('chess-altered-mid.png')
-    # img_reference = load_img('chess.png')
-
-    # score, diff = calculate_similarity(img_reference, img_comparison)
-    # result_diff = process_difference_2(diff, img_reference, img_comparison)
-    # score, diff = calculate_similarity_2(img_reference, img_comparison)
-    # result_diff = process_difference_3(diff, img_reference, img_comparison)
-
-    # print("Average SSIM:", score)
-    # print("Average SSIM:", score)
-    # print("Similarity Score: {:.5f}%".format(score * 100))
-
-    # show_outlined(result_diff)
-    # show_diff(result_diff)
-    # show_outlined(result_diff, img_reference)
-    # show_all_diff(result_diff, img_reference, img_comparison)
-
-    # show_test(result_diff, img_reference, img_comparison)
-
-    process = subprocess.Popen(["C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Tron.coollab"])
-    # time.sleep(5)
-    process.terminate()
-
+    page.add(
+        ft.Container(
+            expand=True,
+            gradient = ft.RadialGradient(
+                colors=["#A878BC", "#6568F2"],
+                center=ft.alignment.bottom_left,
+                radius=1.6,
+            ),
+            content=ft.ResponsiveRow(
+                [left_container, right_container],
+                run_spacing=0,
+                spacing=0,
+            ),
+        )
+    )
+    resize_handler(None)
 if __name__ == "__main__":
-    main()
+    ft.app(target=main, assets_dir="assets")

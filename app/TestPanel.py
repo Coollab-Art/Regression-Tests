@@ -2,6 +2,9 @@ import flet as ft
 from time import sleep
 import asyncio
 
+dark_color = '#191C20'
+light_blue = '#A0CAFD'
+
 def TestPanel(height: float) -> ft.Container:
 
     version_section = versionSelection()
@@ -12,16 +15,16 @@ def TestPanel(height: float) -> ft.Container:
         content=ft.Column(
             [
                 version_section,
-                ft.Divider(height=1, color="#1B1B1D"),
+                ft.Divider(height=1, color=dark_color),
                 project_section,
-                ft.Divider(height=1, color="#1B1B1D"),
+                ft.Divider(height=1, color=dark_color),
                 counter_section,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
             expand=True
         ),
         padding=ft.padding.symmetric(horizontal=20, vertical=10),
-        bgcolor=ft.Colors.with_opacity(0.7, '#1B1B1D'),
+        bgcolor=ft.Colors.with_opacity(0.6, dark_color),
         col={"md": 6},
         height=height,
     )
@@ -133,7 +136,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -148,7 +151,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -163,7 +166,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -178,7 +181,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -193,7 +196,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -208,7 +211,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -223,7 +226,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -238,7 +241,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -253,7 +256,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -268,7 +271,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -283,7 +286,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -298,7 +301,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -313,7 +316,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -328,7 +331,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
@@ -343,7 +346,7 @@ def testListSection() -> ft.Container:
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(),
                                     padding=0,
-                                    bgcolor=ft.Colors.BLUE_GREY_900
+                                    bgcolor=dark_color
                                 ),
                             ),
                             bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
