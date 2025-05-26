@@ -1,6 +1,7 @@
 import flet as ft
 from app.TestPanel import TestPanel
 from app.PreviewPanel import PreviewPanel
+from app.controller import Controller
 
 def main(page: ft.Page):
     page.title = "Coollab regression test"
@@ -10,8 +11,14 @@ def main(page: ft.Page):
     page.spacing = 0
     page.padding = 0
 
-    left_container = TestPanel(page.height)
-    right_container = PreviewPanel(page.height)
+    controller = Controller(page)
+
+    left_container = TestPanel(controller, page.height)
+    right_container = PreviewPanel(controller, page.height)
+
+    controller.set_test_panel(left_container)
+    controller.set_preview_panel(right_container)
+
     def resize_handler(e):
         left_container.height = page.height
         right_container.height = page.height
@@ -35,5 +42,6 @@ def main(page: ft.Page):
         )
     )
     resize_handler(None)
+
 if __name__ == "__main__":
     ft.app(target=main, assets_dir="assets")

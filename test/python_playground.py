@@ -4,22 +4,22 @@ import time
 import random
 import subprocess
 import time
-from img_handler import (
-    load_img,
+# from img_handler import (
+#     load_img,
 
-    calculate_similarity,
-    calculate_similarity_2,
+#     calculate_similarity,
+#     calculate_similarity_2,
 
-    process_difference,
-    process_difference_2,
-    process_difference_3,
+#     process_difference,
+#     process_difference_2,
+#     process_difference_3,
 
-    show_all_diff,
-    show_diff,
-    show_mask,
-    show_outlined,
-    show_test,
-)
+#     show_all_diff,
+#     show_diff,
+#     show_mask,
+#     show_outlined,
+#     show_test,
+# )
 
 def main() -> None:
     # img_comparison = load_img('chess-altered-mid.png')
@@ -41,8 +41,8 @@ def main() -> None:
 
     # show_test(result_diff, img_reference, img_comparison)
 
-    process = subprocess.Popen(["C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Tron.coollab"])
+    process = subprocess.Popen(["C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"])
     # time.sleep(5)
-    process.terminate()
+    # process.terminate()
 
 main()
