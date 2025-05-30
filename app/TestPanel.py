@@ -2,65 +2,111 @@ import flet as ft
 from time import sleep
 import asyncio
 from app.controller import Controller
+import threading
 
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
 
-def TestPanel(controller:Controller, height: float) -> ft.Container:
+class TestPanel(ft.Container):
+    def __init__(self, controller: Controller, height: float):
+        super().__init__()
+        self.controller = controller
+        self.height = height
+        
+        self.version_section = VersionSelection(self.controller)
+        self.project_section = TestListSection(self.controller)
+        self.counter_section = CounterSection(self.controller)
 
-    version_section = versionSelection(controller)
-    project_section = testListSection(controller)
-    counter_section = counterSection(controller)
-
-    return ft.Container(
-        content=ft.Column(
+        self._build()
+    
+    def _build(self):
+        self.content = ft.Column(
             [
-                version_section,
-                ft.Divider(height=1, color=dark_color),
-                project_section,
-                ft.Divider(height=1, color=dark_color),
-                counter_section,
+                self.version_section,
+                ft.Divider(height=1, color=dark_color, thickness=1),
+                self.project_section,
+                ft.Divider(height=1, color=dark_color, thickness=1),
+                self.counter_section,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
-            expand=True
-        ),
-        padding=ft.padding.symmetric(horizontal=20, vertical=10),
-        bgcolor=ft.Colors.with_opacity(0.6, dark_color),
-        col={"md": 6},
-        height=height,
-    )
+            expand=True,
+            spacing=5,
+        )
+        self.padding = ft.padding.symmetric(horizontal=20, vertical=10)
+        self.bgcolor = ft.Colors.with_opacity(0.6, dark_color)
+        self.col = {"md": 6}
+        self.height = self.height
 
-def versionSelection(controller:Controller) -> ft.Container:
+    def start_test(self, pending_number:int):
+        self.version_section.disable_controls()
+        self.project_section.clear_view()
+        self.counter_section.update_size(pending_number)
+        self.version_section.update_progress(0)
 
-    input_field = ft.TextField(
-        label="Coollab version path",
-        border_radius=50,
-        text_size=12,
-        expand=True,
-    )
-    submit_button = ft.ElevatedButton(
-        "Launch test",
-        icon=ft.Icons.PLAY_ARROW,
-        style=ft.ButtonStyle(padding=ft.padding.only(left=10, right=15, top=18, bottom=20)),
-    )
-    def launch_test(e):
-        input_field.disabled = True
-        submit_button.disabled = True
-        e.page.update()
-        # TODO : Launch the test
-    submit_button.on_click = launch_test
+    def add_pending_project(self, test_id: int):
+        self.project_section.add_processing_tile(test_id)
 
-    return ft.Container(
-        content=ft.Row(
+    def update_result(self, progress: int, test_id: int, score: int, status: bool):
+        self.version_section.update_progress(progress)
+        self.project_section.replace_tile(test_id, score, status)
+        self.counter_section.increment_current()
+
+    def end_test(self):
+        self.version_section.enable_controls()
+        self.version_section.update_progress(1)
+
+
+
+class VersionSelection(ft.Container):
+    def __init__(self, controller: Controller):
+        super().__init__()
+        self.controller = controller
+        self.input_field = ft.TextField(
+            label="Coollab version path",
+            border_radius=50,
+            text_size=12,
+            expand=True,
+        )
+        self.submit_button = ft.ElevatedButton(
+            "Launch test",
+            icon=ft.Icons.PLAY_ARROW,
+            on_click = self.submit_clicked,
+            style=ft.ButtonStyle(padding=ft.padding.only(left=10, right=15, top=18, bottom=20)),
+        )
+        self.progress_bar = ft.ProgressBar(value=0, expand=True)
+        self._build()
+
+    def _build(self):
+        self.content=ft.Column(
             [
-                input_field,
-                submit_button,
+                ft.Row(
+                    [
+                        self.input_field,
+                        self.submit_button,
+                    ],
+                    expand=True,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    height=40,
+                ),
+                self.progress_bar,
             ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            height=40,
-        ),
-    )
+        )
+    
+    def submit_clicked(self, e):
+        coollab_path = self.input_field.value
+        threading.Thread(target=self.controller.launch_test, args=(coollab_path,)).start()
+
+    def disable_controls(self):
+        self.input_field.disabled = True
+        self.submit_button.disabled = True
+    def update_progress(self, progress: int):
+        self.progress_bar.value = progress
+    def enable_controls(self):
+        self.input_field.disabled = False
+        self.submit_button.disabled = False
+
+
 
 def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> ft.ListTile:
     if not status:
@@ -78,8 +124,8 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> f
 
     return ft.ListTile(
         leading=ft.Icon(tile_icon, color=tile_color),
-        title=ft.Text(f"Test {test_id}", color=tile_color),
-        subtitle=ft.Text(subtitle_text, color=tile_color, size=10),
+        title=ft.Text(f"Test {test_id}", color=tile_color, size=16, weight=ft.FontWeight.W_500,),
+        subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
         trailing=ft.ElevatedButton(
             content=ft.Icon(ft.Icons.REMOVE_RED_EYE_OUTLINED, color=ft.Colors.SECONDARY),
             on_click=lambda e: controller.update_preview(test_id),
@@ -92,41 +138,74 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> f
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
     )
 
-def testListSection(controller:Controller) -> ft.Container:
-    lv = ft.ListView(spacing=10, padding=20, auto_scroll=False)
 
-    return ft.Container(
-        content=ft.Column(
-            [
-                ft.ListView(
-                    [
-                        create_tile(controller, 1, 90, True),
-                        create_tile(controller, 2, 79, True),
-                        create_tile(controller, 3, 0, False),
-                        create_tile(controller, 4, 0, False),
-                        create_tile(controller, 5, 0, False),
-                    ],
-                    spacing=5, 
-                    padding=0, 
-                    auto_scroll=True,
-                    expand=True,
-                ),
-            ],
+
+class TestListSection(ft.Container):
+    def __init__(self, controller: Controller):
+        super().__init__()
+        self.controller = controller
+        self.lv = ft.ListView(spacing=5, padding=0, auto_scroll=True, expand=True)
+        self.tiles_by_id = {}
+        self._build()
+    
+    def _build(self):
+        self.content=ft.Column([self.lv],
             spacing=0,
             horizontal_alignment=ft.CrossAxisAlignment.START,
             expand=True,
-        ),
-        expand=True,
-    )
+        )
+        self.expand=True
 
-def counterSection(controller:Controller) -> ft.Container:
-    return ft.Container(
-        content=ft.Row(
+    def clear_view(self):
+        self.lv.controls.clear()
+        self.tiles_by_id.clear()
+
+    def add_processing_tile(self, test_id: int):
+        pending_tile = create_tile(self.controller, test_id, 0, False)
+        self.lv.controls.append(pending_tile)
+        self.tiles_by_id[test_id] = pending_tile
+
+    def replace_tile(self, test_id: int, score: int, status: bool):
+        result_tile = create_tile(self.controller, test_id, score, status)
+        if test_id in self.tiles_by_id:
+            processing_tile = self.tiles_by_id[test_id]
+            try:
+                index = self.lv.controls.index(processing_tile)
+                self.lv.controls[index] = result_tile
+                self.tiles_by_id[test_id] = result_tile
+            except ValueError:
+                print(f"Erreur: Le Test ID {test_id} n'a pas été trouvée dans la liste pour la mise à jour.")
+        else:
+            print(f"Avertissement: Tentative de mise à jour du Test ID {test_id} non existant... ajout d'un test non initialisé'")
+            self.lv.controls.append(result_tile)
+            self.tiles_by_id[test_id] = result_tile
+
+
+
+class CounterSection(ft.Container):
+    def __init__(self, controller: Controller):
+        super().__init__()
+        self.controller = controller
+        self.current=ft.Text(value="0", color=ft.Colors.WHITE,  size=12)
+        self.total_pending=ft.Text(value="/ ?", color=ft.Colors.WHITE,  size=12)
+        self._build()
+
+    def _build(self):
+        self.content=ft.Row(
             [
-                ft.Text(value="Results :", color=ft.Colors.WHITE,  size=12),
-                ft.Text(value="0/25", color=ft.Colors.WHITE,  size=12),
+                ft.Text(value="Results :", color=ft.Colors.WHITE, size=12),
+                self.current,
+                self.total_pending,
             ],
             alignment=ft.MainAxisAlignment.END,
+            spacing=5,
             expand=True,
-        ),
-    )
+        )
+
+    def update_size(self, pending_size: int):
+        self.total_pending.value = "/ " + str(pending_size)
+        self.current_count = 0
+        self.current.value = "0"
+    def increment_current(self):
+        self.current_count += 1
+        self.current.value = str(self.current_count)

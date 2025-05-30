@@ -38,9 +38,11 @@ class PreviewPanel(ft.Container):
         self.col = {"md": 6}
         self.height = self.height
 
+    def start_test(self):
+        self.image_section = ImgDisplay('No image preview available yet')
+
     def update_content(self, result: str):
         self.image_section.update_text(result)
-        self.image_section.update()
 
 def imgSelector() -> ft.Container:
 
