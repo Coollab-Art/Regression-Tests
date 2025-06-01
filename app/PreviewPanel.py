@@ -39,10 +39,12 @@ class PreviewPanel(ft.Container):
         self.height = self.height
 
     def start_test(self):
-        self.image_section = ImgDisplay('No image preview available yet')
+        self.image_section.update_text('No image preview available yet')
+        self.image_section.label_container.alignment = ft.alignment.center
 
     def update_content(self, result: str):
         self.image_section.update_text(result)
+        self.image_section.label_container.alignment = ft.alignment.bottom_left
 
 def imgSelector() -> ft.Container:
 
@@ -127,7 +129,6 @@ class ImgDisplay(ft.Container):
 
     def update_text(self, new_text: str):
         self.label.value = new_text
-        self.label_container.alignment = ft.alignment.bottom_left
 
 def startEndComparison(height: float) -> ft.Container:
     return ft.Container(
