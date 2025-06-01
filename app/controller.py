@@ -38,12 +38,9 @@ class Controller:
 # Test Launching Method
     def initialize_ui_for_tests(self, total_pending: int):
         self.test_panel.start_test(total_pending)
-        # for test_data in self.tests:
-        #     self.test_panel.add_pending_project(test_data["id"])
+
         self.test_panel.version_section.update()
-        # self.test_panel.project_section.update()
         self.test_panel.counter_section.update()
-        # self.page.update()
 
     def update_single_test_result(self, current_test_count: int, total_pending:int, tid, s, st):
         progress_value = (1 / total_pending)*current_test_count if total_pending > 0 and current_test_count > 0 else 0
@@ -52,13 +49,11 @@ class Controller:
         self.test_panel.version_section.update()
         self.test_panel.project_section.update()
         self.test_panel.counter_section.update()
-        # self.page.update()
     
     def finalize_ui(self):
         self.test_panel.end_test()
 
         self.test_panel.version_section.update()
-        # self.page.update()
 
     def launch_test(self, coollab_path:str):
         if self.preview_panel:
@@ -67,7 +62,6 @@ class Controller:
         if self.test_panel:
             total_pending = len(self.tests)
 
-            # self.page.run_thread(self.initialize_ui_for_tests(total_pending))
             self.initialize_ui_for_tests(total_pending)
 
             current_test_count = 0
@@ -86,5 +80,4 @@ class Controller:
                 # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(current_test_count, total_pending, tid, s, st))
                 self.update_single_test_result(current_test_count, total_pending, test_id, score, status)
 
-            # self.page.run_thread(self.finalize_ui)
             self.finalize_ui()
