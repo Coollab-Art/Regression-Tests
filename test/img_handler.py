@@ -1,29 +1,13 @@
 import numpy as np
 import cv2
 from skimage.metrics import structural_similarity as ssim
-import os
-from io import BytesIO
-from PIL import Image
-import base64
 
 def load_img(img_name: str) -> np.ndarray:
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
-    # image_dir = os.path.join(script_dir, 'assets/img')
-    image_dir = 'assets/img'
-    path = os.path.join(image_dir, img_name)
+    path = '/assets/img/' + img_name
     img = cv2.imread(path)
     if img is None:
         raise FileNotFoundError(f"Image not found at {path}")
     return img
-
-def cv2_to_base64(img):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    pil_img = Image.fromarray(img_rgb)
-    buffer = BytesIO()
-    pil_img.save(buffer, format="PNG")
-    base64_img = base64.b64encode(buffer.getvalue()).decode("utf-8")
-    # return f"data:image/png;base64,{base64_img}"
-    return base64_img
 
 ###########################
 # SIMILARITY
@@ -42,7 +26,6 @@ def calculate_similarity(img_reference: np.ndarray, img_comparison: np.ndarray) 
     mean_ssim = np.mean(ssim_scores)
     # diff = np.max(diff_list, axis=0)
     diff = channel_diff
-    # Convert the diff image to uint8 (make it useful for visualization)
     diff = (1.0 - diff)
     diff = (diff * 255).astype("uint8")
     return mean_ssim, diff

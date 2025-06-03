@@ -4,6 +4,7 @@ from app.PreviewPanel import PreviewPanel
 from app.controller import Controller
 
 def main(page: ft.Page):
+    
     page.title = "Coollab regression test"
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
