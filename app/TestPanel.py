@@ -125,7 +125,7 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
 
     trailing_button = ft.ElevatedButton(
         content=ft.Icon(ft.Icons.REMOVE_RED_EYE_OUTLINED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
-        on_click=lambda e: on_tile_click(e, test_id), # Le bouton appelle le même callback
+        # on_click=controller.relaunch_test(test_id),
         style=ft.ButtonStyle(
             shape=ft.CircleBorder(),
             padding=0,
@@ -138,8 +138,9 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
         leading=ft.Icon(tile_icon, color=tile_color),
         title=ft.Text(f"Test {test_id}", color=tile_color, size=16, weight=ft.FontWeight.W_500,),
         subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
-        trailing=trailing_button,
+        # trailing=trailing_button,
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
+        on_click=lambda e: on_tile_click(e, test_id),
     )
 
 
@@ -195,14 +196,14 @@ class TestListSection(ft.Container):
         
         if self.selected_tile and self.selected_tile != clicked_tile:
             self.selected_tile.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
-            self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE_OUTLINED
-            self.selected_tile.trailing.content.color = ft.Colors.SECONDARY
+            # self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE_OUTLINED
+            # self.selected_tile.trailing.content.color = ft.Colors.SECONDARY
             self.selected_tile.update()
 
         self.selected_tile = clicked_tile
         self.selected_tile.bgcolor = ft.Colors.with_opacity(0.25, light_blue)
-        self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE
-        self.selected_tile.trailing.content.color = light_blue
+        # self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE
+        # self.selected_tile.trailing.content.color = light_blue
         self.selected_tile.update()
 
         self.controller.update_preview(test_id)

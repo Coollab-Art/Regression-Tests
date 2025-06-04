@@ -17,12 +17,11 @@ def load_img(img_name: str) -> np.ndarray:
     return img
 
 def cv2_to_base64(img):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    pil_img = Image.fromarray(img_rgb)
-    buffer = BytesIO()
-    pil_img.save(buffer, format="PNG")
-    base64_img = base64.b64encode(buffer.getvalue()).decode("utf-8")
-    # return f"data:image/png;base64,{base64_img}"
+    success, encoded_image = cv2.imencode(".png", img)
+    if not success:
+        raise ValueError(f"Impossible d'encoder l'image au format '.png'")
+    image_bytes = encoded_image.tobytes()
+    base64_img = base64.b64encode(image_bytes).decode("utf-8")
     return base64_img
 
 ###########################

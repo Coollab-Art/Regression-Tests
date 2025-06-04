@@ -2,7 +2,7 @@ import time
 import threading
 import subprocess
 import numpy as np
-from img_handler import (
+from app.img_handler import (
     load_img,
     cv2_to_base64,
 
@@ -12,7 +12,7 @@ from img_handler import (
     process_difference_refined,
     process_difference_rgb,
 )
-from coollab_handler import (
+from app.coollab_handler import (
     open_coollab_project,
 )
 
