@@ -108,7 +108,7 @@ class VersionSelection(ft.Container):
 
 
 
-def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> ft.ListTile:
+def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_tile_click) -> ft.ListTile:
     if not status:
         tile_color = ft.Colors.GREY_500
         tile_icon = ft.Icons.TIMER_SHARP
@@ -122,19 +122,22 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> f
 
     subtitle_text = "Processing..." if not status else "Result : " + str(score)
 
+    trailing_button = ft.ElevatedButton(
+        content=ft.Icon(ft.Icons.REMOVE_RED_EYE_OUTLINED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
+        on_click=lambda e: on_tile_click(e, test_id), # Le bouton appelle le même callback
+        style=ft.ButtonStyle(
+            shape=ft.CircleBorder(),
+            padding=0,
+            bgcolor=dark_color,
+        ),
+        disabled=True if not status else False,
+    )
+
     return ft.ListTile(
         leading=ft.Icon(tile_icon, color=tile_color),
         title=ft.Text(f"Test {test_id}", color=tile_color, size=16, weight=ft.FontWeight.W_500,),
         subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
-        trailing=ft.ElevatedButton(
-            content=ft.Icon(ft.Icons.REMOVE_RED_EYE_OUTLINED, color=ft.Colors.SECONDARY),
-            on_click=lambda e: controller.update_preview(test_id),
-            style=ft.ButtonStyle(
-                shape=ft.CircleBorder(),
-                padding=0,
-                bgcolor=dark_color,
-            ),
-        ),
+        trailing=trailing_button,
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
     )
 
@@ -146,6 +149,7 @@ class TestListSection(ft.Container):
         self.controller = controller
         self.lv = ft.ListView(spacing=5, padding=0, auto_scroll=True, expand=True)
         self.tiles_by_id = {}
+        self.selected_tile = None
         self._build()
     
     def _build(self):
@@ -159,14 +163,15 @@ class TestListSection(ft.Container):
     def clear_view(self):
         self.lv.controls.clear()
         self.tiles_by_id.clear()
+        self.selected_tile = None
 
     def add_processing_tile(self, test_id: int):
-        pending_tile = create_tile(self.controller, test_id, 0, False)
+        pending_tile = create_tile(self.controller, test_id, 0, False, self._tile_click)
         self.lv.controls.append(pending_tile)
         self.tiles_by_id[test_id] = pending_tile
 
     def replace_tile(self, test_id: int, score: int, status: bool):
-        result_tile = create_tile(self.controller, test_id, score, status)
+        result_tile = create_tile(self.controller, test_id, score, status, self._tile_click)
         if test_id in self.tiles_by_id:
             processing_tile = self.tiles_by_id[test_id]
             try:
@@ -180,6 +185,26 @@ class TestListSection(ft.Container):
             self.lv.controls.append(result_tile)
             self.tiles_by_id[test_id] = result_tile
 
+    def _tile_click(self, e, test_id: int):
+        clicked_tile = self.tiles_by_id.get(test_id)
+        
+        if clicked_tile is None:
+            print(f"Erreur: Tuile avec ID {test_id} non trouvée lors du clic.")
+            return
+        
+        if self.selected_tile and self.selected_tile != clicked_tile:
+            self.selected_tile.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
+            self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE_OUTLINED
+            self.selected_tile.trailing.content.color = ft.Colors.SECONDARY
+            self.selected_tile.update()
+
+        self.selected_tile = clicked_tile
+        self.selected_tile.bgcolor = ft.Colors.with_opacity(0.25, light_blue)
+        self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE
+        self.selected_tile.trailing.content.color = light_blue
+        self.selected_tile.update()
+
+        self.controller.update_preview(test_id)
 
 
 class CounterSection(ft.Container):

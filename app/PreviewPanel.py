@@ -8,6 +8,7 @@ from app.controller import Controller
 
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
+placeholder_path = "/img/logo.png"
 
 class PreviewPanel(ft.Container):
     def __init__(self, controller, height: float):
@@ -139,8 +140,8 @@ class ImgDisplay(ft.Container):
             padding=ft.padding.all(10),
         )
         self.displayed_image = ft.Image(
-            src="/img/logo.png",
-            fit=ft.ImageFit.CONTAIN,
+            src=placeholder_path,
+            fit=ft.ImageFit.COVER,
             repeat=ft.ImageRepeat.NO_REPEAT,
             expand=True,
         )
@@ -155,7 +156,8 @@ class ImgDisplay(ft.Container):
 
     def reset(self):
         self.displayed_image.src_base64 = None
-        self.displayed_image.src = "/img/logo.png"
+        self.displayed_image.src = placeholder_path
+        self.displayed_image.fit = ft.ImageFit.COVER
         self.update_text('No image preview available yet')
         self.label_container.alignment = ft.alignment.center
 
@@ -165,6 +167,7 @@ class ImgDisplay(ft.Container):
     def update_img(self, image: str):
         self.displayed_image.src = None
         self.displayed_image.src_base64 = image
+        self.displayed_image.fit = ft.ImageFit.CONTAIN
 
 class ComparisonSection(ft.Container):
     def __init__(self, controller, height: float):
@@ -173,14 +176,14 @@ class ComparisonSection(ft.Container):
         )
         self.controller = controller
         self.original_image = ft.Image(
-            src="/img/original_placeholder.jpg",
-            fit=ft.ImageFit.CONTAIN,
+            src=placeholder_path,
+            fit=ft.ImageFit.COVER,
             repeat=ft.ImageRepeat.NO_REPEAT,
             expand=True,
         )
         self.exported_image = ft.Image(
-            src="/img/exported_placeholder.png",
-            fit=ft.ImageFit.CONTAIN,
+            src=placeholder_path,
+            fit=ft.ImageFit.COVER,
             repeat=ft.ImageRepeat.NO_REPEAT,
             expand=True,
         )
@@ -228,11 +231,15 @@ class ComparisonSection(ft.Container):
     def reset(self):
         self.original_image.src_base64 = None
         self.exported_image.src_base64 = None
-        self.original_image.src = "/img/original_placeholder.jpg"
-        self.exported_image.src = "/img/exported_placeholder.png"
+        self.original_image.src = placeholder_path
+        self.exported_image.src = placeholder_path
+        self.original_image.fit = ft.ImageFit.COVER
+        self.exported_image.fit = ft.ImageFit.COVER
 
     def update_img(self, original_image: str, exported_image: str):
         self.original_image.src = None
         self.exported_image.src = None
         self.original_image.src_base64 = original_image
         self.exported_image.src_base64 = exported_image
+        self.original_image.fit = ft.ImageFit.CONTAIN
+        self.exported_image.fit = ft.ImageFit.CONTAIN
