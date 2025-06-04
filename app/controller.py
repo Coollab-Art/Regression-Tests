@@ -1,5 +1,7 @@
 import time
 import threading
+import subprocess
+import numpy as np
 from img_handler import (
     load_img,
     cv2_to_base64,
@@ -9,6 +11,9 @@ from img_handler import (
 
     process_difference_refined,
     process_difference_rgb,
+)
+from coollab_handler import (
+    open_coollab_project,
 )
 
 class Controller:
@@ -66,7 +71,12 @@ class Controller:
             self.preview_panel.selector_section.set_selected(test_id)
             self.preview_panel.update()
 
-# Test Launching Method
+# --------------------------------------
+# Test Controller Methods
+# --------------------------------------
+
+# ------ UI
+
     def reset_tests(self):
         for test in self.tests:
             test["score"] = 0
@@ -86,23 +96,30 @@ class Controller:
 
         self.test_panel.update()
     
+    def finalize_ui(self):
+        self.test_panel.end_test()
+
+        self.test_panel.version_section.update()
+
+# ------ Test Processing
+
     def process_test(self, coollab_path: str, test_data: dict) -> dict[dict, float]:
         # Launch coollab with the provided path and get the exported images
         img_comparison = load_img(test_data["img_comp"])
         img_reference = load_img(test_data["img_ref"])
         score, diff = calculate_similarity(img_reference, img_comparison)
         result_diff = process_difference_refined(diff, img_reference, img_comparison)
+        score = -np.log10(score)*10000
         return {
             'results': result_diff,
             'score': score,
         }
-    
-    def finalize_ui(self):
-        self.test_panel.end_test()
 
-        self.test_panel.version_section.update()
+# ---------- Launch Test Whole Method ----------
 
     def launch_test(self, coollab_path:str):
+        # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
+        # open_coollab_project(coollab_path, "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Test.coollab")
         if self.preview_panel:
             self.preview_panel.start_test()
             self.preview_panel.update()

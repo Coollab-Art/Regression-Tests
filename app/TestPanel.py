@@ -95,7 +95,8 @@ class VersionSelection(ft.Container):
     
     def submit_clicked(self, e):
         coollab_path = self.input_field.value
-        threading.Thread(target=self.controller.launch_test, args=(coollab_path,)).start()
+        if coollab_path.strip() != "":
+            threading.Thread(target=self.controller.launch_test, args=(coollab_path,)).start()
 
     def disable_controls(self):
         self.input_field.disabled = True
@@ -113,7 +114,7 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
         tile_color = ft.Colors.GREY_500
         tile_icon = ft.Icons.TIMER_SHARP
     else:
-        if score >= 80:
+        if score <= 200: # Score threshold for success
             tile_color = ft.Colors.GREEN_ACCENT_700
             tile_icon = ft.Icons.CHECK_CIRCLE_OUTLINED
         else :
