@@ -46,8 +46,6 @@ class Controller:
         if self.preview_panel:
             for test_data in self.tests:
                 if test_data["id"] == test_id:
-                    original_img = load_img(test_data["img_ref"])
-                    exported_img = load_img(test_data["img_comp"])
                     display_text = test_data["name"]
 
                     filter = self.preview_panel.selector_section.get_filter()
@@ -55,13 +53,12 @@ class Controller:
                     if filter == "threshold":
                         display_img = test_data["results"]["thresh"]
                     elif filter == "original":
-                        display_img = original_img
+                        display_img = load_img(test_data["img_ref"])
                     elif filter == "exported":
-                        display_img = exported_img
+                        display_img = load_img(test_data["img_comp"])
                     else:
                         display_img = test_data["results"]["outlined"]
 
-                    self.preview_panel.comparison_section.update_img(cv2_to_base64(original_img), cv2_to_base64(exported_img))
                     self.preview_panel.image_section.update_img(cv2_to_base64(display_img))
                     break
                 else:

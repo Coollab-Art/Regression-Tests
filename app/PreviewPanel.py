@@ -15,9 +15,8 @@ class PreviewPanel(ft.Container):
         super().__init__()
         self.controller = controller
         self.height = height
-        self.image_section = ImgDisplay('No image preview available yet')
         self.selector_section = ImgSelector(self.controller)
-        self.comparison_section = ComparisonSection(self.controller, self.height * 0.3)
+        self.image_section = ImgDisplay('No image preview available yet')
         self._build()
 
     def _build(self):
@@ -27,8 +26,6 @@ class PreviewPanel(ft.Container):
                 self.selector_section,
                 ft.Divider(height=1, color=dark_color, thickness=2),
                 self.image_section,
-                ft.Divider(height=1, color=dark_color, thickness=2),
-                self.comparison_section,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
             expand=True,
@@ -42,7 +39,6 @@ class PreviewPanel(ft.Container):
     def start_test(self):
         self.selector_section.reset()
         self.image_section.reset()
-        self.comparison_section.reset()
 
     def update_content(self, result: str):
         self.image_section.update_text(result)
@@ -169,77 +165,3 @@ class ImgDisplay(ft.Container):
         self.displayed_image.src_base64 = image
         self.displayed_image.fit = ft.ImageFit.CONTAIN
 
-class ComparisonSection(ft.Container):
-    def __init__(self, controller, height: float):
-        super().__init__(
-            height = height,
-        )
-        self.controller = controller
-        self.original_image = ft.Image(
-            src=placeholder_path,
-            fit=ft.ImageFit.COVER,
-            repeat=ft.ImageRepeat.NO_REPEAT,
-            expand=True,
-        )
-        self.exported_image = ft.Image(
-            src=placeholder_path,
-            fit=ft.ImageFit.COVER,
-            repeat=ft.ImageRepeat.NO_REPEAT,
-            expand=True,
-        )
-        self.original_stack=ft.Stack(
-            [
-                self.original_image,
-                ft.Container(
-                    content=ft.Text("Original", color=ft.Colors.with_opacity(.7, ft.Colors.ON_SURFACE)),
-                    alignment=ft.alignment.top_left,
-                    padding=ft.padding.symmetric(5, 10),
-                )
-            ],
-            alignment=ft.alignment.center,
-            expand=True,
-        )
-        self.exported_stack=ft.Stack(
-            [
-                self.exported_image,
-                ft.Container(
-                    content=ft.Text("Exported", color=ft.Colors.with_opacity(.7, ft.Colors.ON_SURFACE)),
-                    alignment=ft.alignment.top_left,
-                    padding=ft.padding.symmetric(5, 10),
-                )
-            ],
-            alignment=ft.alignment.center,
-            expand=True,
-        )
-        self._build()
-
-    def _build(self):
-        self.content=ft.Row(
-            [
-                self.original_stack,
-                self.exported_stack,
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=0,
-            expand=True,
-        )
-        self.bgcolor=ft.Colors.with_opacity(.3, dark_color)
-        self.padding=0
-        self.margin=0
-    
-    def reset(self):
-        self.original_image.src_base64 = None
-        self.exported_image.src_base64 = None
-        self.original_image.src = placeholder_path
-        self.exported_image.src = placeholder_path
-        self.original_image.fit = ft.ImageFit.COVER
-        self.exported_image.fit = ft.ImageFit.COVER
-
-    def update_img(self, original_image: str, exported_image: str):
-        self.original_image.src = None
-        self.exported_image.src = None
-        self.original_image.src_base64 = original_image
-        self.exported_image.src_base64 = exported_image
-        self.original_image.fit = ft.ImageFit.CONTAIN
-        self.exported_image.fit = ft.ImageFit.CONTAIN
