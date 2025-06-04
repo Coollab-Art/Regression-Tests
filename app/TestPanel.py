@@ -46,8 +46,7 @@ class TestPanel(ft.Container):
     def add_pending_project(self, test_id: int):
         self.project_section.add_processing_tile(test_id)
 
-    def update_result(self, progress: int, test_id: int, score: int, status: bool):
-        self.version_section.update_progress(progress)
+    def update_result(self, test_id: int, score: int, status: bool):
         self.project_section.replace_tile(test_id, score, status)
         self.counter_section.increment_current()
 
@@ -109,7 +108,7 @@ class VersionSelection(ft.Container):
 
 
 
-def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_tile_click) -> ft.ListTile:
+def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_tile_click, on_redo_click) -> ft.ListTile:
     if not status:
         tile_color = ft.Colors.GREY_500
         tile_icon = ft.Icons.TIMER_SHARP
@@ -124,8 +123,8 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
     subtitle_text = "Processing..." if not status else "Result : " + str(score)
 
     trailing_button = ft.ElevatedButton(
-        content=ft.Icon(ft.Icons.REMOVE_RED_EYE_OUTLINED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
-        # on_click=controller.relaunch_test(test_id),
+        content=ft.Icon(ft.Icons.RESTART_ALT_ROUNDED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
+        on_click=lambda e: on_redo_click(test_id),
         style=ft.ButtonStyle(
             shape=ft.CircleBorder(),
             padding=0,
@@ -133,14 +132,14 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
         ),
         disabled=True if not status else False,
     )
-
+    
     return ft.ListTile(
         leading=ft.Icon(tile_icon, color=tile_color),
         title=ft.Text(f"Test {test_id}", color=tile_color, size=16, weight=ft.FontWeight.W_500,),
         subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
-        # trailing=trailing_button,
+        trailing=trailing_button,
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
-        on_click=lambda e: on_tile_click(e, test_id),
+        on_click=lambda e: on_tile_click(test_id) if status else None,
     )
 
 
@@ -168,18 +167,20 @@ class TestListSection(ft.Container):
         self.selected_tile = None
 
     def add_processing_tile(self, test_id: int):
-        pending_tile = create_tile(self.controller, test_id, 0, False, self._tile_click)
+        pending_tile = create_tile(self.controller, test_id, 0, False, self.tile_click, self.redo_click)
         self.lv.controls.append(pending_tile)
         self.tiles_by_id[test_id] = pending_tile
 
     def replace_tile(self, test_id: int, score: int, status: bool):
-        result_tile = create_tile(self.controller, test_id, score, status, self._tile_click)
+        result_tile = create_tile(self.controller, test_id, score, status, self.tile_click, self.redo_click)
+        print(result_tile)
         if test_id in self.tiles_by_id:
             processing_tile = self.tiles_by_id[test_id]
             try:
                 index = self.lv.controls.index(processing_tile)
                 self.lv.controls[index] = result_tile
                 self.tiles_by_id[test_id] = result_tile
+                print("aaaaa")
             except ValueError:
                 print(f"Erreur: Le Test ID {test_id} n'a pas été trouvée dans la liste pour la mise à jour.")
         else:
@@ -187,7 +188,7 @@ class TestListSection(ft.Container):
             self.lv.controls.append(result_tile)
             self.tiles_by_id[test_id] = result_tile
 
-    def _tile_click(self, e, test_id: int):
+    def tile_click(self, test_id: int):
         clicked_tile = self.tiles_by_id.get(test_id)
         
         if clicked_tile is None:
@@ -196,17 +197,18 @@ class TestListSection(ft.Container):
         
         if self.selected_tile and self.selected_tile != clicked_tile:
             self.selected_tile.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
-            # self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE_OUTLINED
-            # self.selected_tile.trailing.content.color = ft.Colors.SECONDARY
             self.selected_tile.update()
 
         self.selected_tile = clicked_tile
         self.selected_tile.bgcolor = ft.Colors.with_opacity(0.25, light_blue)
-        # self.selected_tile.trailing.content.name = ft.Icons.REMOVE_RED_EYE
-        # self.selected_tile.trailing.content.color = light_blue
         self.selected_tile.update()
 
         self.controller.update_preview(test_id)
+
+    def redo_click(self, test_id: int):
+        print(f"Relaunching test {test_id}...")
+        self.replace_tile(test_id, 0, False)
+        # self.controller.relaunch_test(test_id)
 
 
 class CounterSection(ft.Container):

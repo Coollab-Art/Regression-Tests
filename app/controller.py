@@ -22,6 +22,8 @@ class Controller:
         self.page = page
         self.test_panel = None
         self.preview_panel = None
+        self.coollab_path = None
+        self.current_test_count = 0
         self.tests = [
             {"id": 1, "name": "Test 1", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
             {"id": 2, "name": "Test 2", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
@@ -31,6 +33,12 @@ class Controller:
             {"id": 6, "name": "Test 6", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
             {"id": 7, "name": "Test 7", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
         ]
+    
+    def set_coollab_path(self, coollab_path: str):
+        self.coollab_path = coollab_path
+        # if self.test_panel:
+        #     self.test_panel.version_section.update_coollab_path(coollab_path)
+        #     self.test_panel.version_section.update()
 
 # --------------------------------------
 # UI Controller Methods
@@ -87,10 +95,13 @@ class Controller:
         self.test_panel.version_section.update()
         self.test_panel.counter_section.update()
 
-    def update_single_test_result(self, current_test_count: int, total_pending:int, tid, s, st):
-        progress_value = (1 / total_pending)*current_test_count if total_pending > 0 and current_test_count > 0 else 0
-        self.test_panel.update_result(progress_value, tid, s, st)
+    def update_progress_bar(self, total_pending:int):
+        progress_value = (1 / total_pending)*self.current_test_count if total_pending > 0 and self.current_test_count > 0 else 0
+        self.test_panel.version_section.update_progress(progress_value)
+        self.test_panel.version_section.update()
 
+    def update_single_test_result(self, tid, s, st):
+        self.test_panel.update_result(tid, s, st)
         self.test_panel.update()
     
     def finalize_ui(self):
@@ -100,7 +111,27 @@ class Controller:
 
 # ------ Test Processing
 
-    def process_test(self, coollab_path: str, test_data: dict) -> dict[dict, float]:
+    def relaunch_test(self, test_id: int):
+        for test_data in self.tests:
+                if test_data["id"] == test_id:
+                    self.current_test_count -= 1
+                    self.update_progress_bar(self.current_test_count, len(self.tests))
+                    test_data["score"] = 0
+                    test_data["status"] = False
+                    test_data["results"] = None
+
+                    test_result = self.process_test(test_data)
+                    if test_result is not None:
+                        test_data["score"] = test_result["score"]
+                        test_data["status"] = True
+                        test_data["results"] = test_result["results"]
+                    self.current_test_count += 1
+                    self.update_progress_bar(len(self.tests))
+                    self.update_single_test_result(test_id, test_data["score"], test_data["status"])
+                    break
+        self.test_panel.update()
+
+    def process_test(self, test_data: dict) -> dict[dict, float]:
         # Launch coollab with the provided path and get the exported images
         img_comparison = load_img(test_data["img_comp"])
         img_reference = load_img(test_data["img_ref"])
@@ -117,6 +148,7 @@ class Controller:
     def launch_test(self, coollab_path:str):
         # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
         # open_coollab_project(coollab_path, "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Test.coollab")
+        self.set_coollab_path(coollab_path)
         if self.preview_panel:
             self.preview_panel.start_test()
             self.preview_panel.update()
@@ -125,9 +157,9 @@ class Controller:
 
             self.initialize_ui_for_tests(total_pending)
 
-            current_test_count = 0
+            self.current_test_count = 0
             for test_data in self.tests:
-                current_test_count += 1
+                self.current_test_count += 1
                 test_id = test_data["id"]
 
                 self.test_panel.add_pending_project(test_id)
@@ -135,13 +167,14 @@ class Controller:
 
                 # Process
                 # time.sleep(0.5)
-                test_result = self.process_test(coollab_path, test_data)
+                test_result = self.process_test(test_data)
                 if test_result is not None:
                     test_data["score"] = test_result["score"]
                     test_data["status"] = True
                     test_data["results"] = test_result["results"]
 
-                # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(current_test_count, total_pending, tid, s, st))
-                self.update_single_test_result(current_test_count, total_pending, test_id, test_data["score"], test_data["status"])
+                # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
+                self.update_progress_bar(total_pending)
+                self.update_single_test_result(test_id, test_data["score"], test_data["status"])
 
             self.finalize_ui()
