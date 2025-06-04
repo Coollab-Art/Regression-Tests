@@ -45,9 +45,9 @@ class Controller:
                     exported_img = load_img(test_data["img_comp"])
                     display_text = test_data["name"]
 
-                    # filter = self.preview_panel.selector_section.get_filter()
-                    filter = None
-                    if filter == "thresh":
+                    filter = self.preview_panel.selector_section.get_filter()
+                    # filter = None
+                    if filter == "threshold":
                         display_img = test_data["results"]["thresh"]
                     elif filter == "original":
                         display_img = original_img
@@ -63,6 +63,7 @@ class Controller:
                     display_text = "No test found"
 
             self.preview_panel.update_content(display_text)
+            self.preview_panel.selector_section.set_selected(test_id)
             self.preview_panel.update()
 
 # Test Launching Method
@@ -83,9 +84,7 @@ class Controller:
         progress_value = (1 / total_pending)*current_test_count if total_pending > 0 and current_test_count > 0 else 0
         self.test_panel.update_result(progress_value, tid, s, st)
 
-        self.test_panel.version_section.update()
-        self.test_panel.project_section.update()
-        self.test_panel.counter_section.update()
+        self.test_panel.update()
     
     def process_test(self, coollab_path: str, test_data: dict) -> dict[dict, float]:
         # Launch coollab with the provided path and get the exported images

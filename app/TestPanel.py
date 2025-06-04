@@ -132,7 +132,7 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool) -> f
             style=ft.ButtonStyle(
                 shape=ft.CircleBorder(),
                 padding=0,
-                bgcolor=dark_color
+                bgcolor=dark_color,
             ),
         ),
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
