@@ -48,6 +48,13 @@ class VersionSelection(ft.Container):
     def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
+        self.file_picker = ft.FilePicker(on_result=self.on_file_picked)
+        self.browse_button = ft.IconButton(
+            icon=ft.Icons.FOLDER_OPEN,
+            tooltip="Open file picker",
+            on_click=self.open_file_picker,
+            # icon_color=light_blue
+        )
         self.input_field = ft.TextField(
             label="Coollab version path",
             border_radius=50,
@@ -64,11 +71,13 @@ class VersionSelection(ft.Container):
         self._build()
 
     def _build(self):
+        self.controller.page.overlay.append(self.file_picker)
         self.content=ft.Column(
             [
                 ft.Row(
                     [
                         self.input_field,
+                        self.browse_button,
                         self.submit_button,
                     ],
                     expand=True,
@@ -79,6 +88,20 @@ class VersionSelection(ft.Container):
                 self.progress_bar,
             ],
         )
+
+    def open_file_picker(self, e):
+        self.file_picker.pick_files(
+            allow_multiple=False,
+            allowed_extensions=["exe"],
+            # initial_directory="C:\\Program Files",
+        )
+    def on_file_picked(self, e: ft.FilePickerResultEvent):
+        if e.files:
+            selected_path = e.files[0].path
+            self.input_field.value = selected_path
+            self.input_field.update()
+        else:
+            print("File selection canceled")
     
     def submit_clicked(self, e):
         coollab_path = self.input_field.value
@@ -88,11 +111,13 @@ class VersionSelection(ft.Container):
     def disable_controls(self):
         self.input_field.disabled = True
         self.submit_button.disabled = True
+        self.browse_button.disabled = True
     def update_progress(self, progress: int):
         self.progress_bar.value = progress
     def enable_controls(self):
         self.input_field.disabled = False
         self.submit_button.disabled = False
+        self.browse_button.disabled = False
 
 
 
