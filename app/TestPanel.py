@@ -43,18 +43,6 @@ class TestPanel(ft.Container):
         self.counter_section.update_size(pending_number)
         self.version_section.update_progress(0)
 
-    def add_pending_project(self, test_id: int):
-        self.project_section.add_processing_tile(test_id)
-
-    def update_result(self, test_id: int, score: int, status: bool):
-        self.project_section.replace_tile(test_id, score, status)
-        self.counter_section.increment_current()
-
-    def end_test(self):
-        self.version_section.enable_controls()
-        self.version_section.update_progress(1)
-
-
 
 class VersionSelection(ft.Container):
     def __init__(self, controller: Controller):
@@ -173,18 +161,18 @@ class TestListSection(ft.Container):
 
     def replace_tile(self, test_id: int, score: int, status: bool):
         result_tile = create_tile(self.controller, test_id, score, status, self.tile_click, self.redo_click)
-        print(result_tile)
         if test_id in self.tiles_by_id:
             processing_tile = self.tiles_by_id[test_id]
             try:
                 index = self.lv.controls.index(processing_tile)
                 self.lv.controls[index] = result_tile
+                if self.selected_tile == processing_tile:
+                    self.selected_tile = result_tile
                 self.tiles_by_id[test_id] = result_tile
-                print("aaaaa")
             except ValueError:
-                print(f"Erreur: Le Test ID {test_id} n'a pas été trouvée dans la liste pour la mise à jour.")
+                print(f"Error: Test ID {test_id} not found in the list for update")
         else:
-            print(f"Avertissement: Tentative de mise à jour du Test ID {test_id} non existant... ajout d'un test non initialisé'")
+            print(f"Warning: Attempt to update non-existent Test ID {test_id}... adding non-initialized test")
             self.lv.controls.append(result_tile)
             self.tiles_by_id[test_id] = result_tile
 
@@ -192,10 +180,10 @@ class TestListSection(ft.Container):
         clicked_tile = self.tiles_by_id.get(test_id)
         
         if clicked_tile is None:
-            print(f"Erreur: Tuile avec ID {test_id} non trouvée lors du clic.")
+            print(f"Error: Tile with ID {test_id} not found on click")
             return
-        
-        if self.selected_tile and self.selected_tile != clicked_tile:
+
+        if self.selected_tile is not None and self.selected_tile != clicked_tile:
             self.selected_tile.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.WHITE)
             self.selected_tile.update()
 
@@ -207,8 +195,7 @@ class TestListSection(ft.Container):
 
     def redo_click(self, test_id: int):
         print(f"Relaunching test {test_id}...")
-        self.replace_tile(test_id, 0, False)
-        # self.controller.relaunch_test(test_id)
+        self.controller.relaunch_test(test_id)
 
 
 class CounterSection(ft.Container):
@@ -237,4 +224,7 @@ class CounterSection(ft.Container):
         self.current.value = "0"
     def increment_current(self):
         self.current_count += 1
+        self.current.value = str(self.current_count)
+    def decrement_current(self):
+        self.current_count -= 1
         self.current.value = str(self.current_count)

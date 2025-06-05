@@ -73,7 +73,7 @@ class Controller:
                     display_text = "No test found"
 
             self.preview_panel.update_content(display_text)
-            self.preview_panel.selector_section.set_selected(test_id)
+            self.preview_panel.selector_section.selected_test_id = test_id
             self.preview_panel.update()
 
 # --------------------------------------
@@ -101,34 +101,50 @@ class Controller:
         self.test_panel.version_section.update()
 
     def update_single_test_result(self, tid, s, st):
-        self.test_panel.update_result(tid, s, st)
+        self.test_panel.project_section.replace_tile(tid, s, st)
+        self.test_panel.counter_section.increment_current()
         self.test_panel.update()
     
     def finalize_ui(self):
-        self.test_panel.end_test()
+        self.test_panel.version_section.enable_controls()
+        self.test_panel.version_section.update_progress(1)
 
         self.test_panel.version_section.update()
+    
+    def reset_ui_on_relaunch(self, test_data: dict):
+        # Reset the preview panel if it was the selected test
+        if self.preview_panel.selector_section.selected_test_id == test_data["id"]:
+            self.preview_panel.selector_section.selected_test_id = None
+            self.preview_panel.image_section.reset()
+            self.preview_panel.update()
+        # Reset test panel
+        self.test_panel.project_section.replace_tile(test_data['id'], 0, False)
+        self.current_test_count -= 1
+        self.update_progress_bar(len(self.tests))
+        self.test_panel.counter_section.decrement_current()
+        test_data["score"] = 0
+        test_data["status"] = False
+        test_data["results"] = None
+
+        self.test_panel.update()
 
 # ------ Test Processing
 
     def relaunch_test(self, test_id: int):
-        for test_data in self.tests:
-                if test_data["id"] == test_id:
-                    self.current_test_count -= 1
-                    self.update_progress_bar(self.current_test_count, len(self.tests))
-                    test_data["score"] = 0
-                    test_data["status"] = False
-                    test_data["results"] = None
 
-                    test_result = self.process_test(test_data)
-                    if test_result is not None:
-                        test_data["score"] = test_result["score"]
-                        test_data["status"] = True
-                        test_data["results"] = test_result["results"]
-                    self.current_test_count += 1
-                    self.update_progress_bar(len(self.tests))
-                    self.update_single_test_result(test_id, test_data["score"], test_data["status"])
-                    break
+        for test_data in self.tests:
+            if test_data["id"] == test_id:
+                self.reset_ui_on_relaunch(test_data)
+
+                test_result = self.process_test(test_data)
+                if test_result is not None:
+                    test_data["score"] = test_result["score"]
+                    test_data["status"] = True
+                    test_data["results"] = test_result["results"]
+                self.current_test_count += 1
+                self.update_progress_bar(len(self.tests))
+                self.update_single_test_result(test_id, test_data["score"], test_data["status"])
+                break
         self.test_panel.update()
 
     def process_test(self, test_data: dict) -> dict[dict, float]:
@@ -162,7 +178,7 @@ class Controller:
                 self.current_test_count += 1
                 test_id = test_data["id"]
 
-                self.test_panel.add_pending_project(test_id)
+                self.test_panel.project_section.add_processing_tile(test_id)
                 self.test_panel.project_section.update()
 
                 # Process

@@ -87,7 +87,7 @@ class ImgSelector(ft.Container):
         self.margin=0
     
     def reset(self):
-        self.set_selected(None)
+        self.selected_test_id = None
         for filter_data in self.filters:
             filter_data["is_active"] = False
             self._update_button(filter_data)
@@ -117,9 +117,6 @@ class ImgSelector(ft.Container):
             if filter_data["is_active"]:
                 return filter_data["value"]
         return None
-    
-    def set_selected(self, test_id: int):
-        self.selected_test_id = test_id
 
 class ImgDisplay(ft.Container):
     def __init__(self,  initial_text: str):

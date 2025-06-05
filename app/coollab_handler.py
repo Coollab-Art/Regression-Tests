@@ -18,6 +18,7 @@ def open_coollab_project(coollab_path: str, project_path: str):
         raise FileNotFoundError(f"Project file not found: {project_path}")
     process = subprocess.Popen(command)
     time.sleep(3)
+    
     process.terminate()
     # try:
     #     process = subprocess.Popen(command)
