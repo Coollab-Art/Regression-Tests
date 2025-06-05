@@ -33,7 +33,7 @@ class PreviewPanel(ft.Container):
         )
         self.padding = ft.padding.all(0)
         self.bgcolor = ft.Colors.with_opacity(0.7, dark_color)
-        self.col = {"md": 6}
+        self.col = {"md": 8}
         self.height = self.height
 
     def start_test(self):

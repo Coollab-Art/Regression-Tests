@@ -34,7 +34,7 @@ class TestPanel(ft.Container):
         )
         self.padding = ft.padding.symmetric(horizontal=20, vertical=10)
         self.bgcolor = ft.Colors.with_opacity(0.6, dark_color)
-        self.col = {"md": 6}
+        self.col = {"md": 4}
         self.height = self.height
 
     def start_test(self, pending_number:int):
