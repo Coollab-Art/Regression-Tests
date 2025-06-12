@@ -27,7 +27,7 @@ def main(page: ft.Page):
         # et aligner le texte à l'intérieur de ce conteneur.
         # width=150,
         # height=30,
-        alignment=ft.alignment.center # Centre le texte à l'intérieur du conteneur
+        alignment=ft.alignment.center, # Centre le texte à l'intérieur du conteneur
     )
 
     def update_text_position(e: ft.ControlEvent):
@@ -63,9 +63,9 @@ def main(page: ft.Page):
         # Le contenu du GestureDetector est un Stack pour positionner le texte.
         content=ft.Stack(
             controls=[mouse_follower_container],
-            expand=True # Permet au Stack de prendre tout l'espace disponible
+            expand=True,
         ),
-        expand=True # Permet au GestureDetector de prendre tout l'espace disponible
+        expand=True, # Permet au GestureDetector de prendre tout l'espace disponible
     )
 
     # Ajoute le GestureDetector (qui contient le Stack et le texte) à la page Flet.
