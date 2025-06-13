@@ -2,6 +2,7 @@ import time
 import threading
 import subprocess
 import numpy as np
+from dataclasses import dataclass
 from app.img_handler import (
     load_img,
     cv2_to_base64,
@@ -24,6 +25,20 @@ def write_file(file_path: str, content: str):
     with open(file_path, "w") as file:
         file.write(content.strip())
 
+@dataclass
+class TestData:
+    id: int
+    name: str
+    score: float = 0.0
+    status: bool = False
+    img_ref: str = ""
+    img_comp: str = ""
+    results: dict = None
+
+    def __post_init__(self):
+        if self.results is None:
+            self.results = {}
+
 class Controller:
 
     def __init__(self, page):
@@ -34,13 +49,13 @@ class Controller:
         print(f"DEBUG: Coollab path loaded from cache")
         self.current_test_count = 0
         self.tests = [
-            {"id": 1, "name": "Test 1", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 2, "name": "Test 2", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 3, "name": "Test 3", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 4, "name": "Test 4", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 5, "name": "Test 5", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 6, "name": "Test 6", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
-            {"id": 7, "name": "Test 7", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
+            TestData(1, "Test 1", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(2, "Test 2", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(3, "Test 3", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(4, "Test 4", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(5, "Test 5", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(6, "Test 6", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(7, "Test 7", img_ref="chess.png", img_comp="chess-altered-hard.png"),
         ]
     
     def set_coollab_path(self, coollab_path: str):
@@ -72,19 +87,19 @@ class Controller:
     def update_preview(self, test_id: int):
         if self.preview_panel:
             for test_data in self.tests:
-                if test_data["id"] == test_id:
-                    display_text = test_data["name"]
+                if test_data.id == test_id:
+                    display_text = test_data.name
 
                     filter = self.preview_panel.selector_section.get_filter()
                     # filter = None
                     if filter == "threshold":
-                        display_img = test_data["results"]["thresh"]
+                        display_img = test_data.results["thresh"]
                     elif filter == "original":
-                        display_img = load_img(test_data["img_ref"])
+                        display_img = load_img(test_data.img_ref)
                     elif filter == "exported":
-                        display_img = load_img(test_data["img_comp"])
+                        display_img = load_img(test_data.img_comp)
                     else:
-                        display_img = test_data["results"]["outlined"]
+                        display_img = test_data.results["outlined"]
 
                     self.preview_panel.image_section.update_img(cv2_to_base64(display_img))
                     break
@@ -103,9 +118,9 @@ class Controller:
 
     def reset_tests(self):
         for test in self.tests:
-            test["score"] = 0
-            test["status"] = False
-            test["results"] = None
+            test.score = 0.0
+            test.status = False
+            test.results = None
 
     def initialize_ui_for_tests(self, total_pending: int):
         self.reset_tests()
@@ -130,20 +145,20 @@ class Controller:
 
         self.test_panel.version_section.update()
     
-    def reset_ui_on_relaunch(self, test_data: dict):
+    def reset_ui_on_relaunch(self, test_data: TestData):
         # Reset the preview panel if it was the selected test
-        if self.preview_panel.selector_section.selected_test_id == test_data["id"]:
+        if self.preview_panel.selector_section.selected_test_id == test_data.id:
             self.preview_panel.selector_section.selected_test_id = None
             self.preview_panel.image_section.reset()
             self.preview_panel.update()
         # Reset test panel
-        self.test_panel.project_section.replace_tile(test_data['id'], 0, False)
+        self.test_panel.project_section.replace_tile(test_data.id, 0, False)
         self.current_test_count -= 1
         self.update_progress_bar(len(self.tests))
         self.test_panel.counter_section.decrement_current()
-        test_data["score"] = 0
-        test_data["status"] = False
-        test_data["results"] = None
+        test_data.score = 0.0
+        test_data.status = False
+        test_data.results = None
 
         self.test_panel.update()
 
@@ -152,24 +167,24 @@ class Controller:
     def relaunch_test(self, test_id: int):
 
         for test_data in self.tests:
-            if test_data["id"] == test_id:
+            if test_data.id == test_id:
                 self.reset_ui_on_relaunch(test_data)
 
                 test_result = self.process_test(test_data)
                 if test_result is not None:
-                    test_data["score"] = test_result["score"]
-                    test_data["status"] = True
-                    test_data["results"] = test_result["results"]
+                    test_data.score = test_result["score"]
+                    test_data.status = True
+                    test_data.results = test_result["results"]
                 self.current_test_count += 1
                 self.update_progress_bar(len(self.tests))
-                self.update_single_test_result(test_id, test_data["score"], test_data["status"])
+                self.update_single_test_result(test_id, test_data.score, test_data.status)
                 break
         self.test_panel.update()
 
-    def process_test(self, test_data: dict) -> dict[dict, float]:
+    def process_test(self, test_data: TestData) -> dict[dict, float]:
         # Launch coollab with the provided path and get the exported images
-        img_comparison = load_img(test_data["img_comp"])
-        img_reference = load_img(test_data["img_ref"])
+        img_comparison = load_img(test_data.img_comp)
+        img_reference = load_img(test_data.img_ref)
         score, diff = calculate_similarity(img_reference, img_comparison)
         result_diff = process_difference_refined(diff, img_reference, img_comparison)
         score = -np.log10(score)*10000
@@ -195,7 +210,7 @@ class Controller:
             self.current_test_count = 0
             for test_data in self.tests:
                 self.current_test_count += 1
-                test_id = test_data["id"]
+                test_id = test_data.id
 
                 self.test_panel.project_section.add_processing_tile(test_id)
                 self.test_panel.project_section.update()
@@ -204,12 +219,12 @@ class Controller:
                 # time.sleep(0.5)
                 test_result = self.process_test(test_data)
                 if test_result is not None:
-                    test_data["score"] = test_result["score"]
-                    test_data["status"] = True
-                    test_data["results"] = test_result["results"]
+                    test_data.score = test_result["score"]
+                    test_data.status = True
+                    test_data.results = test_result["results"]
 
                 # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
                 self.update_progress_bar(total_pending)
-                self.update_single_test_result(test_id, test_data["score"], test_data["status"])
+                self.update_single_test_result(test_id, test_data.score, test_data.status)
 
             self.finalize_ui()
