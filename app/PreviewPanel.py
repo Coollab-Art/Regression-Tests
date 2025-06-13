@@ -134,7 +134,7 @@ class ImgDisplay(ft.Container):
         )
         self.displayed_image = ft.Image(
             src=placeholder_path,
-            fit=ft.ImageFit.COVER,
+            fit=ft.ImageFit.CONTAIN,
             repeat=ft.ImageRepeat.NO_REPEAT,
             expand=True,
         )

@@ -16,6 +16,14 @@ from app.coollab_handler import (
     open_coollab_project,
 )
 
+def read_file(file_path: str) -> str:
+    with open(file_path, "r") as file:
+        return file.read().strip()
+
+def write_file(file_path: str, content: str):
+    with open(file_path, "w") as file:
+        file.write(content.strip())
+
 class Controller:
 
     def __init__(self, page):
@@ -23,6 +31,7 @@ class Controller:
         self.test_panel = None
         self.preview_panel = None
         self.coollab_path = None
+        print(f"DEBUG: Coollab path loaded from cache")
         self.current_test_count = 0
         self.tests = [
             {"id": 1, "name": "Test 1", "score": 0, "status": False, "img_ref": "chess.png", "img_comp": "chess-altered-hard.png"},
@@ -36,9 +45,19 @@ class Controller:
     
     def set_coollab_path(self, coollab_path: str):
         self.coollab_path = coollab_path
+        cache_path = read_file('assets/coollab_path_cache.txt')
+        if coollab_path != cache_path:
+            write_file('assets/coollab_path_cache.txt', coollab_path)
         # if self.test_panel:
         #     self.test_panel.version_section.update_coollab_path(coollab_path)
         #     self.test_panel.version_section.update()
+    
+    def get_coollab_path(self) -> str:
+        if self.coollab_path:
+            return self.coollab_path
+        else:
+            self.coollab_path = read_file('assets/coollab_path_cache.txt') if read_file('assets/coollab_path_cache.txt') != "" else ""
+            return self.coollab_path
 
 # --------------------------------------
 # UI Controller Methods

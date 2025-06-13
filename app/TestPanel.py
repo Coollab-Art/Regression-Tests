@@ -60,6 +60,7 @@ class VersionSelection(ft.Container):
             border_radius=50,
             text_size=12,
             expand=True,
+            value=self.controller.get_coollab_path(),
         )
         self.submit_button = ft.ElevatedButton(
             "Launch test",
