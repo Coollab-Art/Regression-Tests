@@ -14,11 +14,10 @@ def main(page: ft.Page):
     page.title = "Couleur du Pixel sous la Souris"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.window_width = 1200 # Augmenter la largeur de la fenêtre pour le canevas
-    page.window_height = 700 # Ajuster la hauteur si nécessaire
+    page.window_width = 1200
+    page.window_height = 700
     page.bgcolor = ft.Colors.BLUE_GREY_900
 
-    # Texte pour afficher la couleur RGB
     color_display_text = ft.Text(
         value="Déplacez la souris sur l'image...",
         color=ft.Colors.WHITE,
