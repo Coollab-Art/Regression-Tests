@@ -83,7 +83,8 @@ def process_difference(diff: np.ndarray, img_reference: np.ndarray, img_comparis
 
 def process_difference_refined(diff: np.ndarray, img_reference: np.ndarray, img_comparison: np.ndarray) -> dict[str, np.ndarray]:
     diff = cv2.equalizeHist(diff)
-    _, thresh = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)  # adjust second parameter for sensitivity
+    thresh = diff
+    # _, thresh = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)  # adjust second parameter for sensitivity
     # thresh = cv2.adaptiveThreshold(
     #     diff, 255,
     #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -93,7 +94,7 @@ def process_difference_refined(diff: np.ndarray, img_reference: np.ndarray, img_
     # )
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    # thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
     contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]

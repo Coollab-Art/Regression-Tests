@@ -188,6 +188,7 @@ def main(page: ft.Page):
         fit=ft.ImageFit.CONTAIN,
         error_content=ft.Text("Impossible de charger l'image", color=ft.Colors.RED_500),
     )
+    
 
     page.add(
         ft.Row(

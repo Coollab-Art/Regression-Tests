@@ -49,13 +49,11 @@ class Controller:
         print(f"DEBUG: Coollab path loaded from cache")
         self.current_test_count = 0
         self.tests = [
-            TestData(1, "Test 1", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(2, "Test 2", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(3, "Test 3", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(4, "Test 4", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(5, "Test 5", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(6, "Test 6", img_ref="chess.png", img_comp="chess-altered-hard.png"),
-            TestData(7, "Test 7", img_ref="chess.png", img_comp="chess-altered-hard.png"),
+            TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
+            TestData(2, "Test 2", img_ref="test2_o.png", img_comp="test2_e.png"),
+            TestData(3, "Test 3", img_ref="test3_o.png", img_comp="test3_e.png"),
+            TestData(4, "Test 4", img_ref="test4_o.png", img_comp="test4_e.png"),
+            TestData(5, "Test 5", img_ref="test5_o.jpeg", img_comp="test5_e.jpeg"),
         ]
     
     def set_coollab_path(self, coollab_path: str):

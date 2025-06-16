@@ -13,6 +13,8 @@ image_detector_area: ft.GestureDetector | None = None
 
 def main(page: ft.Page):
     global downloaded_pil_image, image_detector_area
+    original_width = None
+    original_height = None
 
     page.title = "Suivi de Souris"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -72,6 +74,7 @@ def main(page: ft.Page):
             response.raise_for_status()
             image_bytes = io.BytesIO(response.content)
             downloaded_pil_image = Image.open(image_bytes).convert("RGB") 
+            original_width, original_height = downloaded_pil_image.size
             print(f"DEBUG: Image téléchargée et chargée en PIL. Dimensions : {downloaded_pil_image.size}")
             # Mettre à jour la page après le chargement de l'image pour rafraîchir l'UI
             page.update() 
@@ -187,6 +190,8 @@ def main(page: ft.Page):
     image_control = ft.Image(
         src=IMAGE_URL,
         fit=ft.ImageFit.CONTAIN,
+        width = original_width,
+        height= original_height,
         error_content=ft.Text("Impossible de charger l'image", color=ft.Colors.RED_500),
         expand=True,
     )
