@@ -3,6 +3,7 @@ import threading
 import subprocess
 import numpy as np
 from dataclasses import dataclass
+import os
 from app.img_handler import (
     load_img,
     cv2_to_base64,
@@ -18,12 +19,28 @@ from app.coollab_handler import (
 )
 
 def read_file(file_path: str) -> str:
-    with open(file_path, "r") as file:
-        return file.read().strip()
+    if not os.path.exists(file_path):
+        try:
+            with open(file_path, "x") as file:
+                pass
+        except Exception as e:
+            print(f"Error occurred while creating file : {e}")
+    try:
+        with open(file_path, "r") as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        print(f"Error : '{file_path}' not found")
+    except Exception as e:
+        print(f"Error while reading file : {e}")
 
 def write_file(file_path: str, content: str):
-    with open(file_path, "w") as file:
-        file.write(content.strip())
+    try:
+        with open(file_path, "w") as file:
+            file.write(content.strip())
+    except FileNotFoundError:
+        print(f"Error : '{file_path}' not found")
+    except Exception as e:
+        print(f"Error while writing on file : {e}")
 
 @dataclass
 class TestData:
@@ -46,7 +63,6 @@ class Controller:
         self.test_panel = None
         self.preview_panel = None
         self.coollab_path = None
-        print(f"DEBUG: Coollab path loaded from cache")
         self.current_test_count = 0
         self.tests = [
             TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
@@ -58,9 +74,9 @@ class Controller:
     
     def set_coollab_path(self, coollab_path: str):
         self.coollab_path = coollab_path
-        cache_path = read_file('assets/coollab_path_cache.txt')
+        cache_path = read_file('coollab_path_cache.txt')
         if coollab_path != cache_path:
-            write_file('assets/coollab_path_cache.txt', coollab_path)
+            write_file('coollab_path_cache.txt', coollab_path)
         # if self.test_panel:
         #     self.test_panel.version_section.update_coollab_path(coollab_path)
         #     self.test_panel.version_section.update()
@@ -69,7 +85,7 @@ class Controller:
         if self.coollab_path:
             return self.coollab_path
         else:
-            self.coollab_path = read_file('assets/coollab_path_cache.txt') if read_file('assets/coollab_path_cache.txt') != "" else ""
+            self.coollab_path = read_file('coollab_path_cache.txt') if read_file('coollab_path_cache.txt') != "" else ""
             return self.coollab_path
 
 # --------------------------------------
