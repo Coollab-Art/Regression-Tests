@@ -61,6 +61,8 @@ class VersionSelection(ft.Container):
             text_size=12,
             expand=True,
             value=self.controller.get_coollab_path(),
+            on_focus=lambda e: self.controller.set_focus_state(True),
+            on_blur=lambda e: self.controller.set_focus_state(False),
         )
         self.submit_button = ft.ElevatedButton(
             "Launch test",

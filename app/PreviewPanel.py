@@ -16,7 +16,7 @@ class PreviewPanel(ft.Container):
         super().__init__()
         self.controller = controller
         self.height = height
-        self.selector_section = ImgSelector(self.controller)
+        self.filter_section = ImgFilter(self.controller)
         self.image_section = ImgDisplay('No image preview available yet')
         self._build()
 
@@ -24,7 +24,7 @@ class PreviewPanel(ft.Container):
 
         self.content = ft.Column(
             [
-                self.selector_section,
+                self.filter_section,
                 ft.Divider(height=1, color=dark_color, thickness=2),
                 self.image_section,
             ],
@@ -38,7 +38,7 @@ class PreviewPanel(ft.Container):
         self.height = self.height
 
     def start_test(self):
-        self.selector_section.reset()
+        self.filter_section.reset()
         self.image_section.reset()
 
     def update_content(self, result: str):
@@ -53,11 +53,11 @@ class FilterButton:
     control: ft.Control = None
     active: bool = False
 
-class ImgSelector(ft.Container):
+class ImgFilter(ft.Container):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
-        self.selector_style = ft.ButtonStyle(
+        self.filter_style = ft.ButtonStyle(
             shape=ft.RoundedRectangleBorder(radius=0),
             # padding=ft.padding.only(left=10, right=15, top=18, bottom=20),
             padding=ft.padding.symmetric(horizontal=20, vertical=28),
@@ -77,9 +77,9 @@ class ImgSelector(ft.Container):
             button = ft.ElevatedButton(
                 filter_data.name,
                 icon=filter_data.icon,
-                style=self.selector_style,
+                style=self.filter_style,
                 expand=True,
-                on_click=lambda e, val=filter_data.value: self._on_click(e, val),
+                on_click=lambda e, val=filter_data.value: self.change_active_filter(val),
             )
             filter_data.control = button
             button_list.append(button)
@@ -94,21 +94,27 @@ class ImgSelector(ft.Container):
         self.margin=0
         self.update_buttons()
     
+    def get_active_filter(self) -> str:
+        for filter_data in self.filters:
+            if filter_data.active:
+                return filter_data.value
+        return ""
+    
     def reset(self):
         self.selected_test_id = None
         for filter_data in self.filters:
             filter_data.active = False if filter_data.value != "threshold" else True
         self.update_buttons()
-
-    def _on_click(self, e, clicked_value: str):
+    
+    def change_active_filter(self, filter_value: str):
         for filter_data in self.filters:
-            if filter_data.value == clicked_value:
+            if filter_data.value == filter_value:
                 if filter_data.active:
                     break
                 else:
                     filter_data.active = True
                     if self.selected_test_id is not None:
-                        self.controller.update_preview(self.selected_test_id, clicked_value)
+                        self.controller.update_preview(self.selected_test_id, filter_value)
             else:
                 filter_data.active = False
         self.update_buttons()

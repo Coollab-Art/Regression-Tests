@@ -64,6 +64,7 @@ class Controller:
         self.preview_panel = None
         self.coollab_path = None
         self.current_test_count = 0
+        self.is_focused = False
         self.tests = [
             TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
             TestData(2, "Test 2", img_ref="test2_o.png", img_comp="test2_e.png"),
@@ -72,6 +73,10 @@ class Controller:
             TestData(5, "Test 5", img_ref="test5_o.jpeg", img_comp="test5_e.jpeg"),
         ]
     
+    def set_focus_state(self, focus_state: bool = False):
+        self.is_focused = focus_state
+        print(self.is_focused)
+
     def set_coollab_path(self, coollab_path: str):
         self.coollab_path = coollab_path
         cache_path = read_file('coollab_path_cache.txt')
@@ -116,7 +121,7 @@ class Controller:
                     display_text = "No test found"
 
             self.preview_panel.update_content(display_text)
-            self.preview_panel.selector_section.selected_test_id = test_id
+            self.preview_panel.filter_section.selected_test_id = test_id
             self.preview_panel.update()
 
 # --------------------------------------
@@ -156,8 +161,8 @@ class Controller:
     
     def reset_ui_on_relaunch(self, test_data: TestData):
         # Reset the preview panel if it was the selected test
-        if self.preview_panel.selector_section.selected_test_id == test_data.id:
-            self.preview_panel.selector_section.selected_test_id = None
+        if self.preview_panel.filter_section.selected_test_id == test_data.id:
+            self.preview_panel.filter_section.selected_test_id = None
             self.preview_panel.image_section.reset()
             self.preview_panel.update()
         # Reset test panel

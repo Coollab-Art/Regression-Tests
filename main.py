@@ -27,6 +27,15 @@ def main(page: ft.Page):
         right_container.update()
     page.on_resized = resize_handler
 
+    def on_keyboard(e: ft.KeyboardEvent):
+        if e.key == " " and not controller.is_focused:
+            current_filter = right_container.filter_section.get_active_filter()
+            if current_filter != "exported":
+                right_container.filter_section.change_active_filter("exported")
+            else:
+                right_container.filter_section.change_active_filter("original")
+    page.on_keyboard_event = on_keyboard
+
     page.add(
         ft.Container(
             expand=True,
