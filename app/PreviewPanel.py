@@ -5,6 +5,7 @@ import base64
 from PIL import Image
 import tempfile
 from app.controller import Controller
+from dataclasses import dataclass
 
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
@@ -43,6 +44,14 @@ class PreviewPanel(ft.Container):
     def update_content(self, result: str):
         self.image_section.update_text(result)
         self.image_section.label_container.alignment = ft.alignment.bottom_left
+    
+@dataclass
+class FilterButton:
+    name: str
+    icon: ft.Icons
+    value: str
+    control: ft.Control = None
+    active: bool = False
 
 class ImgSelector(ft.Container):
     def __init__(self, controller):
@@ -55,10 +64,10 @@ class ImgSelector(ft.Container):
         )
         self.selected_test_id = None
         self.filters = [
-            # {"name": "Outlined", "icon": ft.Icons.IMAGE_SEARCH_OUTLINED, "value": "outlined", "control": None, "is_active": False},
-            {"name": "Threshold", "icon": ft.Icons.GRADIENT_OUTLINED, "value": "threshold", "control": None, "is_active": False},
-            {"name": "Exported", "icon": ft.Icons.COMPARE_OUTLINED, "value": "exported", "control": None, "is_active": False},
-            {"name": "Original", "icon": ft.Icons.IMAGE_OUTLINED, "value": "original", "control": None, "is_active": False},
+            FilterButton(name="Threshold", icon=ft.Icons.GRADIENT_OUTLINED, value="threshold", control=None, active=True),
+            FilterButton(name="Exported", icon=ft.Icons.COMPARE_OUTLINED, value="exported", control=None, active=False),
+            FilterButton(name="Original", icon=ft.Icons.IMAGE_OUTLINED, value="original", control=None, active=False),
+            # FilterButton(name="Outlined", icon=ft.Icons.IMAGE_SEARCH_OUTLINED, value="outlined", control=None, active=False),
         ]
         self._build()
 
@@ -66,15 +75,13 @@ class ImgSelector(ft.Container):
         button_list = []
         for filter_data in self.filters:
             button = ft.ElevatedButton(
-                filter_data["name"],
-                icon=filter_data["icon"],
+                filter_data.name,
+                icon=filter_data.icon,
                 style=self.selector_style,
-                bgcolor=dark_color,
-                color=ft.Colors.with_opacity(.6, light_blue),
                 expand=True,
-                on_click=lambda e, val=filter_data["value"]: self._on_click(e, val)
+                on_click=lambda e, val=filter_data.value: self._on_click(e, val),
             )
-            filter_data["control"] = button
+            filter_data.control = button
             button_list.append(button)
 
         self.content=ft.Row(
@@ -85,38 +92,38 @@ class ImgSelector(ft.Container):
         )
         self.padding=0
         self.margin=0
+        self.update_buttons()
     
     def reset(self):
         self.selected_test_id = None
         for filter_data in self.filters:
-            filter_data["is_active"] = False
-            self._update_button(filter_data)
+            filter_data.active = False if filter_data.value != "threshold" else True
+        self.update_buttons()
 
     def _on_click(self, e, clicked_value: str):
         for filter_data in self.filters:
-            if filter_data["value"] == clicked_value:
-                filter_data["is_active"] = not filter_data["is_active"] # Toggle
-                self._update_button(filter_data)
-                break
-
-        if self.selected_test_id is not None:
-            self.controller.update_preview(self.selected_test_id)
-
-    def _update_button(self, filter_data: dict):
-        button = filter_data["control"]
-        if button is not None:
-            if filter_data["is_active"]:
-                button.bgcolor = light_blue
-                button.color = dark_color
+            if filter_data.value == clicked_value:
+                if filter_data.active:
+                    break
+                else:
+                    filter_data.active = True
+                    if self.selected_test_id is not None:
+                        self.controller.update_preview(self.selected_test_id, clicked_value)
             else:
-                button.bgcolor = dark_color
-                button.color = ft.Colors.with_opacity(.6, light_blue)
+                filter_data.active = False
+        self.update_buttons()
+        self.update()
 
-    def get_filter(self) -> str | None:
-        for filter_data in reversed(self.filters):
-            if filter_data["is_active"]:
-                return filter_data["value"]
-        return None
+    def update_buttons(self):
+        for filter_data in self.filters:
+            button = filter_data.control
+            if button is not None:
+                if filter_data.active:
+                    button.bgcolor = light_blue
+                    button.color = dark_color
+                else:
+                    button.bgcolor = dark_color
+                    button.color = ft.Colors.with_opacity(.6, light_blue)
 
 class ImgDisplay(ft.Container):
     def __init__(self,  initial_text: str):

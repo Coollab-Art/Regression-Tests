@@ -217,7 +217,7 @@ class TestListSection(ft.Container):
         self.selected_tile.bgcolor = ft.Colors.with_opacity(0.25, light_blue)
         self.selected_tile.update()
 
-        self.controller.update_preview(test_id)
+        self.controller.update_preview(test_id, "threshold")
 
     def redo_click(self, test_id: int):
         print(f"Relaunching test {test_id}...")

@@ -77,9 +77,6 @@ class Controller:
         cache_path = read_file('coollab_path_cache.txt')
         if coollab_path != cache_path:
             write_file('coollab_path_cache.txt', coollab_path)
-        # if self.test_panel:
-        #     self.test_panel.version_section.update_coollab_path(coollab_path)
-        #     self.test_panel.version_section.update()
     
     def get_coollab_path(self) -> str:
         if self.coollab_path:
@@ -98,14 +95,12 @@ class Controller:
     def set_test_panel(self, panel):
         self.test_panel = panel
 
-    def update_preview(self, test_id: int):
+    def update_preview(self, test_id: int, filter: str):
         if self.preview_panel:
             for test_data in self.tests:
                 if test_data.id == test_id:
                     display_text = test_data.name
 
-                    filter = self.preview_panel.selector_section.get_filter()
-                    # filter = None
                     if filter == "threshold":
                         display_img = test_data.results["thresh"]
                     elif filter == "original":
