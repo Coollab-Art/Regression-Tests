@@ -2,22 +2,25 @@ import flet as ft
 import numpy as np
 import cv2
 import base64
-from PIL import Image
-import tempfile
 from app.controller import Controller
 from dataclasses import dataclass
+from pynput.mouse import Controller as MouseController
+from app.img_handler import (
+    get_hex,
+    get_color_at_pos,
+)
 
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
 placeholder_path = "/img/logo.png"
 
 class PreviewPanel(ft.Container):
-    def __init__(self, controller, height: float):
+    def __init__(self, controller: Controller, height: float):
         super().__init__()
         self.controller = controller
         self.height = height
         self.filter_section = ImgFilter(self.controller)
-        self.image_section = ImgDisplay('No image preview available yet')
+        self.image_section = ImgDisplay(self.controller, 'No image preview available yet')
         self._build()
 
     def _build(self):
@@ -42,7 +45,7 @@ class PreviewPanel(ft.Container):
         self.image_section.reset()
 
     def update_content(self, result: str):
-        self.image_section.update_text(result)
+        self.image_section.update_label(result)
         self.image_section.label_container.alignment = ft.alignment.bottom_left
     
 @dataclass
@@ -54,7 +57,7 @@ class FilterButton:
     active: bool = False
 
 class ImgFilter(ft.Container):
-    def __init__(self, controller):
+    def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
         self.filter_style = ft.ButtonStyle(
@@ -132,13 +135,18 @@ class ImgFilter(ft.Container):
                     button.color = ft.Colors.with_opacity(.6, light_blue)
 
 class ImgDisplay(ft.Container):
-    def __init__(self,  initial_text: str):
+    def __init__(self, controller: Controller,  initial_text: str):
         super().__init__(
             bgcolor=ft.Colors.with_opacity(.3, dark_color),
             padding=0,
             margin=0,
             expand=True,
         )
+        self.controller = controller
+        self.mouse_inside = False
+        self.image_displayed = False
+
+        # Image with label
         self.label = ft.Text(initial_text, color=ft.Colors.with_opacity(.7, ft.Colors.ON_SURFACE))
         self.label_container = ft.Container(
             content=self.label,
@@ -150,13 +158,44 @@ class ImgDisplay(ft.Container):
             fit=ft.ImageFit.CONTAIN,
             repeat=ft.ImageRepeat.NO_REPEAT,
             expand=True,
+            error_content=ft.Text("Error while loading image", color=ft.Colors.RED_500),
         )
-        self.content=ft.Stack(
-            [
-                self.displayed_image,
-                self.label_container,
-            ],
+
+        # Color picker on hover
+        self.mouse_follower_text_content = ft.Text(
+            value="No color detected",
+            color=light_blue,
+            size=20,
+            weight=ft.FontWeight.BOLD
+        )
+        self.mouse_follower_container = ft.Container(
+            content=self.mouse_follower_text_content,
+            left=0,
+            top=0,
             alignment=ft.alignment.center,
+            visible=False,
+            expand=False,
+        )
+        self.mouse_ctrl = MouseController()
+
+        # Display components
+        self.content=ft.GestureDetector(
+            on_hover=lambda e: self.update_color_picker(e),
+            on_exit=lambda e: self.hide_color_picker(e),
+            content=ft.Stack(
+                controls=[
+                    ft.Stack(
+                        [
+                            self.displayed_image,
+                            self.label_container,
+                        ],
+                        alignment=ft.alignment.center,
+                        expand=True,
+                    ),
+                    self.mouse_follower_container,
+                ],
+                expand=True,
+            ),
             expand=True,
         )
 
@@ -164,14 +203,48 @@ class ImgDisplay(ft.Container):
         self.displayed_image.src_base64 = None
         self.displayed_image.src = placeholder_path
         self.displayed_image.fit = ft.ImageFit.COVER
-        self.update_text('No image preview available yet')
+        self.update_label('No image preview available yet')
         self.label_container.alignment = ft.alignment.center
+        self.image_displayed = False
 
-    def update_text(self, new_text: str):
+    def update_label(self, new_text: str):
         self.label.value = new_text
 
     def update_img(self, image: str):
         self.displayed_image.src = None
         self.displayed_image.src_base64 = image
         self.displayed_image.fit = ft.ImageFit.CONTAIN
+        self.image_displayed = True
+    
+    def hide_color_picker(self, e: ft.ControlEvent):
+        self.mouse_inside = False
+        self.mouse_follower_text_content.value="No color detected",
+        self.mouse_follower_text_content.color=light_blue,
+        if self.mouse_follower_container.visible:
+            self.mouse_follower_container.visible = False
+            self.mouse_follower_container.update()
+
+    
+    def update_color_picker(self, e: ft.ControlEvent):
+        if not self.image_displayed:
+            return
+        self.mouse_inside = True
+        if not self.mouse_follower_container.visible:
+            self.mouse_follower_container.visible = True
+
+        offset = self.mouse_follower_text_content.size * 0.5
+        new_left = e.local_x - offset
+        new_top = e.local_y - offset
+
+        pos = self.mouse_ctrl.position
+        rgb = get_color_at_pos(pos[0], pos[1])
+        # rgb = get_color_at_pos(e.local_x, e.local_y)
+        hex_color = get_hex(rgb)
+
+        if (self.mouse_follower_container.left != new_left or self.mouse_follower_container.top != new_top):
+            self.mouse_follower_container.left = new_left
+            self.mouse_follower_container.top = new_top
+            self.mouse_follower_text_content.value = f"RGB: {rgb} | HEX: {hex_color}"
+            self.mouse_follower_text_content.color = hex_color
+            self.mouse_follower_container.update()
 

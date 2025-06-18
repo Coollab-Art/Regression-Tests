@@ -2,9 +2,14 @@ import numpy as np
 import cv2
 from skimage.metrics import structural_similarity as ssim
 import os
+import base64
+import mss
 # from io import BytesIO
 # from PIL import Image
-import base64
+
+###########################
+# UTILS
+###########################
 
 def load_img(img_name: str) -> np.ndarray:
     # script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +28,17 @@ def cv2_to_base64(img):
     image_bytes = encoded_image.tobytes()
     base64_img = base64.b64encode(image_bytes).decode("utf-8")
     return base64_img
+
+def get_hex(rgb):
+    return '#{:02X}{:02X}{:02X}'.format(*rgb)
+
+def get_color_at_pos(x, y):
+    with mss.mss() as sct:
+        monitor = {"top": y, "left": x, "width": 1, "height": 1}
+        img = sct.grab(monitor)
+        color = np.array(img)[0, 0][:3]  # BGR order
+        rgb = tuple(int(c) for c in color[::-1])  # convert to RGB
+        return rgb
 
 ###########################
 # SIMILARITY
