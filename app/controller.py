@@ -4,7 +4,7 @@ import subprocess
 import numpy as np
 from dataclasses import dataclass
 import os
-from app.img_handler import (
+from services.img_handler import (
     load_img,
     cv2_to_base64,
 
@@ -14,7 +14,7 @@ from app.img_handler import (
     process_difference_refined,
     process_difference_rgb,
 )
-from app.coollab_handler import (
+from services.coollab_handler import (
     open_coollab_project,
 )
 
@@ -75,7 +75,6 @@ class Controller:
     
     def set_focus_state(self, focus_state: bool = False):
         self.is_focused = focus_state
-        print(self.is_focused)
 
     def set_coollab_path(self, coollab_path: str):
         self.coollab_path = coollab_path
@@ -99,6 +98,11 @@ class Controller:
 
     def set_test_panel(self, panel):
         self.test_panel = panel
+
+    def reset_filter_preview(self):
+        if self.preview_panel:
+            self.preview_panel.filter_section.reset()
+            self.preview_panel.update()
 
     def update_preview(self, test_id: int, filter: str):
         if self.preview_panel:
@@ -140,13 +144,13 @@ class Controller:
         self.reset_tests()
         self.test_panel.start_test(total_pending)
 
-        self.test_panel.version_section.update()
+        self.test_panel.path_section.update()
         self.test_panel.counter_section.update()
 
     def update_progress_bar(self, total_pending:int):
         progress_value = (1 / total_pending)*self.current_test_count if total_pending > 0 and self.current_test_count > 0 else 0
-        self.test_panel.version_section.update_progress(progress_value)
-        self.test_panel.version_section.update()
+        self.test_panel.path_section.update_progress(progress_value)
+        self.test_panel.path_section.update()
 
     def update_single_test_result(self, tid, s, st):
         self.test_panel.project_section.replace_tile(tid, s, st)
@@ -154,15 +158,15 @@ class Controller:
         self.test_panel.update()
     
     def finalize_ui(self):
-        self.test_panel.version_section.enable_controls()
-        self.test_panel.version_section.update_progress(1)
+        self.test_panel.path_section.enable_controls()
+        self.test_panel.path_section.update_progress(1)
 
-        self.test_panel.version_section.update()
+        self.test_panel.path_section.update()
     
     def reset_ui_on_relaunch(self, test_data: TestData):
         # Reset the preview panel if it was the selected test
         if self.preview_panel.filter_section.selected_test_id == test_data.id:
-            self.preview_panel.filter_section.selected_test_id = None
+            self.preview_panel.filter_section.reset()
             self.preview_panel.image_section.reset()
             self.preview_panel.update()
         # Reset test panel

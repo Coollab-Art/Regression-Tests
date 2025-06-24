@@ -34,6 +34,8 @@ def main(page: ft.Page):
                 right_container.filter_section.change_active_filter("exported")
             else:
                 right_container.filter_section.change_active_filter("original")
+            right_container.image_section.update_color_picker_color()
+            right_container.image_section.mouse_follower_container.update()
     page.on_keyboard_event = on_keyboard
 
     page.add(
