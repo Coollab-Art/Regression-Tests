@@ -1,9 +1,7 @@
-import time
-import threading
-import subprocess
 import numpy as np
 from dataclasses import dataclass
 import os
+from time import sleep
 from services.img_handler import (
     load_img,
     cv2_to_base64,
@@ -14,9 +12,7 @@ from services.img_handler import (
     process_difference_refined,
     process_difference_rgb,
 )
-from services.coollab_handler import (
-    open_coollab_project,
-)
+from services.coollab_handler import CoollabHandler
 
 def read_file(file_path: str) -> str:
     if not os.path.exists(file_path):
@@ -65,12 +61,13 @@ class Controller:
         self.coollab_path = None
         self.current_test_count = 0
         self.is_focused = False
+        self.coollab = CoollabHandler()
         self.tests = [
-            TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
+            # TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
             TestData(2, "Test 2", img_ref="test2_o.png", img_comp="test2_e.png"),
-            TestData(3, "Test 3", img_ref="test3_o.png", img_comp="test3_e.png"),
-            TestData(4, "Test 4", img_ref="test4_o.png", img_comp="test4_e.png"),
-            TestData(5, "Test 5", img_ref="test5_o.jpeg", img_comp="test5_e.jpeg"),
+            # TestData(3, "Test 3", img_ref="test3_o.png", img_comp="test3_e.png"),
+            # TestData(4, "Test 4", img_ref="test4_o.png", img_comp="test4_e.png"),
+            # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_comp="test5_e.jpeg"),
         ]
     
     def set_focus_state(self, focus_state: bool = False):
@@ -200,7 +197,9 @@ class Controller:
         self.test_panel.update()
 
     def process_test(self, test_data: TestData) -> dict[dict, float]:
-        # Launch coollab with the provided path and get the exported images
+        self.coollab.export_coollab_img(test_data.name)
+        self.coollab.open_project("C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Tron.coollab")
+        # sleep(3)
         img_comparison = load_img(test_data.img_comp)
         img_reference = load_img(test_data.img_ref)
         score, diff = calculate_similarity(img_reference, img_comparison)
@@ -214,8 +213,10 @@ class Controller:
 # ---------- Launch Test Whole Method ----------
 
     def launch_test(self, coollab_path:str):
+
         # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
         # open_coollab_project(coollab_path, "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Test.coollab")
+        
         self.set_coollab_path(coollab_path)
         if self.preview_panel:
             self.preview_panel.start_test()

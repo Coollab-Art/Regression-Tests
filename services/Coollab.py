@@ -25,15 +25,19 @@ class Coollab:
     def _encode_json(self, dic: dict) -> bytes:
         return json.dumps(dic).encode("utf-8") + b"\0"
 
-    def export_image(self, width: int = 500, height: int = 500) -> None:
+    def export_image(self, path: Optional[str] = None, filename: Optional[str] = None, format: Optional[str] = ".png", width: Optional[int] = None, height: Optional[int] = None) -> None:
         if self._s:
             self._s.sendall(
                 self._encode_json(
                     {
                         "command": "ExportImage",
+                        "file_path": path,
+                        "filename": filename,
+                        "format": format,
                         "width": width,
                         "height": height,
-                        "format": ".png",
+                        "autosave": False,
+                        "override": True
                     }
                 )
             )
@@ -46,6 +50,28 @@ class Coollab:
                         "command": "Log",
                         "title": title,
                         "content": content,
+                    }
+                )
+            )
+
+    def close_app(self, force_kill: bool) -> None:
+        if self._s:
+            self._s.sendall(
+                self._encode_json(
+                    {
+                        "command": "CloseApp",
+                        "force_kill_task_in_progress": force_kill,
+                    }
+                )
+            )
+
+    def open_project(self, project_path: str) -> None:
+        if self._s:
+            self._s.sendall(
+                self._encode_json(
+                    {
+                        "command": "OpenProject",
+                        "project_path": project_path,
                     }
                 )
             )
