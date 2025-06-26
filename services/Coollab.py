@@ -2,6 +2,7 @@ import socket
 import json
 from time import sleep
 from typing import Optional
+from pathlib import Path
 
 class Coollab:
     _host: str
@@ -25,19 +26,19 @@ class Coollab:
     def _encode_json(self, dic: dict) -> bytes:
         return json.dumps(dic).encode("utf-8") + b"\0"
 
-    def export_image(self, path: Optional[str] = None, filename: Optional[str] = None, format: Optional[str] = ".png", width: Optional[int] = None, height: Optional[int] = None) -> None:
+    def export_image(self, folder: Optional[str] = None, filename: Optional[str] = None, extension: Optional[str] = ".png", width: Optional[int] = None, height: Optional[int] = None) -> None:
         if self._s:
             self._s.sendall(
                 self._encode_json(
                     {
                         "command": "ExportImage",
-                        "file_path": path,
+                        "folder": folder,
                         "filename": filename,
-                        "format": format,
+                        "extension": extension,
                         "width": width,
                         "height": height,
-                        "autosave": False,
-                        "override": True
+                        "project_autosave": False,
+                        "export_file_overwrite": True
                     }
                 )
             )

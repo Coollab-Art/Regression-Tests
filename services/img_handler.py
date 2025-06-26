@@ -4,6 +4,7 @@ from skimage.metrics import structural_similarity as ssim
 import os
 import base64
 import mss
+from typing import Optional
 # from io import BytesIO
 # from PIL import Image
 
@@ -11,11 +12,11 @@ import mss
 # UTILS
 ###########################
 
-def load_img(img_name: str) -> np.ndarray:
-    # script_dir = os.path.dirname(os.path.abspath(__file__))
-    # image_dir = os.path.join(script_dir, 'assets/img')
-    image_dir = 'assets/img'
-    path = os.path.join(image_dir, img_name)
+def load_img_from_assets(img_name: str, img_folder: Optional[str] = None) -> np.ndarray:
+    img_dir = 'assets/img'
+    if img_folder:
+        img_dir = os.path.join(img_dir, img_folder)
+    path = os.path.join(img_dir, img_name)
     img = cv2.imread(path)
     if img is None:
         raise FileNotFoundError(f"Image not found at {path}")

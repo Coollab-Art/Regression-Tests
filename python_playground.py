@@ -22,8 +22,8 @@ import time
 # )
 
 def main() -> None:
-    # img_comparison = load_img('chess-altered-hard.png')
-    # img_reference = load_img('chess.png')
+    # img_comparison = load_img_from_assets('chess-altered-hard.png')
+    # img_reference = load_img_from_assets('chess.png')
 
     # score, diff = calculate_similarity(img_reference, img_comparison)
     # result_diff = process_difference_refined(diff, img_reference, img_comparison)

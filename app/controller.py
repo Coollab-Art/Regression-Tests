@@ -2,8 +2,9 @@ import numpy as np
 from dataclasses import dataclass
 import os
 from time import sleep
+from pathlib import Path
 from services.img_handler import (
-    load_img,
+    load_img_from_assets,
     cv2_to_base64,
 
     calculate_similarity,
@@ -12,7 +13,12 @@ from services.img_handler import (
     process_difference_refined,
     process_difference_rgb,
 )
-from services.coollab_handler import CoollabHandler
+from services.coollab_handler import (
+    start_coollab,
+)
+from services.Coollab import Coollab
+
+export_folder_path = str(Path().resolve() / "assets" / "img" / "exp")
 
 def read_file(file_path: str) -> str:
     if not os.path.exists(file_path):
@@ -42,10 +48,11 @@ def write_file(file_path: str, content: str):
 class TestData:
     id: int
     name: str
+    project_path: str = ""
     score: float = 0.0
     status: bool = False
     img_ref: str = ""
-    img_comp: str = ""
+    img_exp: str = ""
     results: dict = None
 
     def __post_init__(self):
@@ -61,13 +68,13 @@ class Controller:
         self.coollab_path = None
         self.current_test_count = 0
         self.is_focused = False
-        self.coollab = CoollabHandler()
         self.tests = [
-            # TestData(1, "Test 1", img_ref="test1_o.png", img_comp="test1_e.png"),
-            TestData(2, "Test 2", img_ref="test2_o.png", img_comp="test2_e.png"),
-            # TestData(3, "Test 3", img_ref="test3_o.png", img_comp="test3_e.png"),
-            # TestData(4, "Test 4", img_ref="test4_o.png", img_comp="test4_e.png"),
-            # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_comp="test5_e.jpeg"),
+            # TestData(1, "Test 1", img_ref="test1_o.png", img_exp="test1_e.png"),
+            TestData(2, "Test 2", img_ref="test2_o.png", img_exp="test2_e.png"),
+            # TestData(3, "Test 3", img_ref="test3_o.png", img_exp="test3_e.png"),
+            # TestData(4, "Test 4", img_ref="test4_o.png", img_exp="test4_e.png"),
+            # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_exp="test5_e.jpeg"),
+            TestData(6, "Tron","C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Tron.coollab", img_ref="test5_o.jpeg", img_exp=""),
         ]
     
     def set_focus_state(self, focus_state: bool = False):
@@ -110,9 +117,9 @@ class Controller:
                     if filter == "threshold":
                         display_img = test_data.results["thresh"]
                     elif filter == "original":
-                        display_img = load_img(test_data.img_ref)
+                        display_img = load_img_from_assets(test_data.name, "ref")
                     elif filter == "exported":
-                        display_img = load_img(test_data.img_comp)
+                        display_img = load_img_from_assets(test_data.name, "exp")
                     else:
                         display_img = test_data.results["outlined"]
 
@@ -180,28 +187,32 @@ class Controller:
 # ------ Test Processing
 
     def relaunch_test(self, test_id: int):
+        # start_coollab(Path(self.get_coollab_path()))
+        with Coollab() as coollab:
+            for test_data in self.tests:
+                if test_data.id == test_id:
+                    self.reset_ui_on_relaunch(test_data)
 
-        for test_data in self.tests:
-            if test_data.id == test_id:
-                self.reset_ui_on_relaunch(test_data)
+                    test_result = self.process_test(test_data, coollab)
+                    if test_result is not None:
+                        test_data.score = test_result["score"]
+                        test_data.status = True
+                        test_data.results = test_result["results"]
+                    self.current_test_count += 1
+                    self.update_progress_bar(len(self.tests))
+                    self.update_single_test_result(test_id, test_data.score, test_data.status)
+                    break
+            self.test_panel.update()
 
-                test_result = self.process_test(test_data)
-                if test_result is not None:
-                    test_data.score = test_result["score"]
-                    test_data.status = True
-                    test_data.results = test_result["results"]
-                self.current_test_count += 1
-                self.update_progress_bar(len(self.tests))
-                self.update_single_test_result(test_id, test_data.score, test_data.status)
-                break
-        self.test_panel.update()
-
-    def process_test(self, test_data: TestData) -> dict[dict, float]:
-        self.coollab.export_coollab_img(test_data.name)
-        self.coollab.open_project("C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Tron.coollab")
-        # sleep(3)
-        img_comparison = load_img(test_data.img_comp)
-        img_reference = load_img(test_data.img_ref)
+    def process_test(self, test_data: TestData, coollab: Coollab) -> dict[dict, float]:
+        if test_data.project_path and Path(test_data.project_path).exists():
+            coollab.open_project(test_data.project_path)
+            coollab.export_image(folder=export_folder_path, filename=test_data.name)
+        # sleep(3) // checking for image export finish
+        if test_data.img_exp == "":
+            test_data.img_exp = test_data.name+".png"
+        img_comparison = load_img_from_assets(test_data.img_exp, "exp")
+        img_reference = load_img_from_assets(test_data.img_ref, "ref")
         score, diff = calculate_similarity(img_reference, img_comparison)
         result_diff = process_difference_refined(diff, img_reference, img_comparison)
         score = -np.log10(score)*10000
@@ -215,35 +226,35 @@ class Controller:
     def launch_test(self, coollab_path:str):
 
         # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
-        # open_coollab_project(coollab_path, "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Test.coollab")
         
         self.set_coollab_path(coollab_path)
-        if self.preview_panel:
-            self.preview_panel.start_test()
-            self.preview_panel.update()
-        if self.test_panel:
-            total_pending = len(self.tests)
+        # start_coollab(Path(self.get_coollab_path()))
+        with Coollab() as coollab:
+            if self.preview_panel:
+                self.preview_panel.start_test()
+                self.preview_panel.update()
+            if self.test_panel:
+                total_pending = len(self.tests)
 
-            self.initialize_ui_for_tests(total_pending)
+                self.initialize_ui_for_tests(total_pending)
 
-            self.current_test_count = 0
-            for test_data in self.tests:
-                self.current_test_count += 1
-                test_id = test_data.id
+                self.current_test_count = 0
+                for test_data in self.tests:
+                    self.current_test_count += 1
+                    test_id = test_data.id
 
-                self.test_panel.project_section.add_processing_tile(test_id)
-                self.test_panel.project_section.update()
+                    self.test_panel.project_section.add_processing_tile(test_id)
+                    self.test_panel.project_section.update()
 
-                # Process
-                # time.sleep(0.5)
-                test_result = self.process_test(test_data)
-                if test_result is not None:
-                    test_data.score = test_result["score"]
-                    test_data.status = True
-                    test_data.results = test_result["results"]
+                    test_result = self.process_test(test_data, coollab)
+                    if test_result is not None:
+                        test_data.score = test_result["score"]
+                        test_data.status = True
+                        test_data.results = test_result["results"]
 
-                # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
-                self.update_progress_bar(total_pending)
-                self.update_single_test_result(test_id, test_data.score, test_data.status)
+                    # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
+                    self.update_progress_bar(total_pending)
+                    self.update_single_test_result(test_id, test_data.score, test_data.status)
 
-            self.finalize_ui()
+                self.finalize_ui()
+                # coollab.close_app(True)
