@@ -74,7 +74,7 @@ class Controller:
             # TestData(3, "Test 3", img_ref="test3_o.png", img_exp="test3_e.png"),
             # TestData(4, "Test 4", img_ref="test4_o.png", img_exp="test4_e.png"),
             # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_exp="test5_e.jpeg"),
-            TestData(6, "Tron","C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Tron.coollab", img_ref="test5_o.jpeg", img_exp=""),
+            TestData(6, "BlackHole","C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Black_Hole_test.coollab", img_ref="test5_o.jpeg", img_exp=""),
         ]
     
     def set_focus_state(self, focus_state: bool = False):
@@ -117,9 +117,9 @@ class Controller:
                     if filter == "threshold":
                         display_img = test_data.results["thresh"]
                     elif filter == "original":
-                        display_img = load_img_from_assets(test_data.name, "ref")
+                        display_img = load_img_from_assets(test_data.img_ref, "ref")
                     elif filter == "exported":
-                        display_img = load_img_from_assets(test_data.name, "exp")
+                        display_img = load_img_from_assets(test_data.img_exp, "exp")
                     else:
                         display_img = test_data.results["outlined"]
 
@@ -130,6 +130,7 @@ class Controller:
 
             self.preview_panel.update_content(display_text)
             self.preview_panel.filter_section.selected_test_id = test_id
+            self.preview_panel.image_section.update_color_picker_color()
             self.preview_panel.update()
 
 # --------------------------------------
@@ -205,14 +206,14 @@ class Controller:
             self.test_panel.update()
 
     def process_test(self, test_data: TestData, coollab: Coollab) -> dict[dict, float]:
+        img_reference = load_img_from_assets(test_data.img_ref, "ref")
         if test_data.project_path and Path(test_data.project_path).exists():
             coollab.open_project(test_data.project_path)
-            coollab.export_image(folder=export_folder_path, filename=test_data.name)
+            coollab.export_image(folder=export_folder_path, filename=test_data.name, height=img_reference.shape[0], width=img_reference.shape[1])
         # sleep(3) // checking for image export finish
         if test_data.img_exp == "":
             test_data.img_exp = test_data.name+".png"
         img_comparison = load_img_from_assets(test_data.img_exp, "exp")
-        img_reference = load_img_from_assets(test_data.img_ref, "ref")
         score, diff = calculate_similarity(img_reference, img_comparison)
         result_diff = process_difference_refined(diff, img_reference, img_comparison)
         score = -np.log10(score)*10000

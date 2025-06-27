@@ -5,6 +5,7 @@ import os
 import base64
 import mss
 from typing import Optional
+from pathlib import Path
 # from io import BytesIO
 # from PIL import Image
 
@@ -13,10 +14,10 @@ from typing import Optional
 ###########################
 
 def load_img_from_assets(img_name: str, img_folder: Optional[str] = None) -> np.ndarray:
-    img_dir = 'assets/img'
+    img_dir = Path("assets/img")
     if img_folder:
-        img_dir = os.path.join(img_dir, img_folder)
-    path = os.path.join(img_dir, img_name)
+        img_dir = img_dir / img_folder
+    path = img_dir / img_name
     img = cv2.imread(path)
     if img is None:
         raise FileNotFoundError(f"Image not found at {path}")
