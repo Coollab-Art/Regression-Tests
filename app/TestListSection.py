@@ -4,12 +4,14 @@ from app.controller import Controller
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
 
+good_score_threshold = 200
+
 def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_tile_click, on_redo_click) -> ft.ListTile:
     if not status:
         tile_color = ft.Colors.GREY_500
         tile_icon = ft.Icons.TIMER_SHARP
     else:
-        if score <= 200: # Score threshold for success
+        if score <= good_score_threshold:
             tile_color = ft.Colors.GREEN_ACCENT_700
             tile_icon = ft.Icons.CHECK_CIRCLE_OUTLINED
         else :

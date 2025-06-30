@@ -39,6 +39,12 @@ def main(page: ft.Page):
                 right_container.filter_section.change_active_filter("exported")
             else:
                 right_container.filter_section.change_active_filter("original")
+        if e.key == "E" and not controller.is_focused:
+            right_container.filter_section.change_active_filter("exported")
+        if e.key == "R" and not controller.is_focused:
+            right_container.filter_section.change_active_filter("original")
+        if e.key == "T" and not controller.is_focused:
+            right_container.filter_section.change_active_filter("threshold")
     page.on_keyboard_event = on_keyboard
 
     page.add(
@@ -65,4 +71,3 @@ if __name__ == "__main__":
         for file in export_folder.iterdir():
             if file.is_file():
                 file.unlink()
-        print("L'application Flet est fermée.")

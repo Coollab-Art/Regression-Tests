@@ -132,9 +132,11 @@ class Controller:
                     display_text = "No test found"
 
             self.preview_panel.update_content(display_text)
+            self.preview_panel.image_section.update()
             self.preview_panel.filter_section.selected_test_id = test_id
+            self.preview_panel.filter_section.update()
+            sleep(0.05)
             self.preview_panel.image_section.update_color_picker_color()
-            self.preview_panel.update()
 
 # --------------------------------------
 # Test Controller Methods
@@ -219,7 +221,7 @@ class Controller:
             coollab.export_image(folder=self.export_folder_path, filename=test_data.name, height=img_reference.shape[0], width=img_reference.shape[1])
             while( self.waiting_for_export ):
                 print("Waiting for image export to finish...")
-                sleep(0.2)
+                sleep(0.3)
         # sleep(3) // checking for image export finish
         if test_data.img_exp == "":
             test_data.img_exp = test_data.name+".png"
