@@ -3,6 +3,9 @@ from app.TestPanel import TestPanel
 from app.PreviewPanel import PreviewPanel
 from app.controller import Controller
 from time import sleep
+from pathlib import Path
+
+export_folder = Path().resolve() / "assets" / "img" / "exp"
 
 def main(page: ft.Page):
     
@@ -14,6 +17,7 @@ def main(page: ft.Page):
     page.padding = 0
 
     controller = Controller(page)
+    controller.export_folder_path = str(export_folder)
 
     left_container = TestPanel(controller, page.height)
     right_container = PreviewPanel(controller, page.height)
@@ -55,4 +59,10 @@ def main(page: ft.Page):
     resize_handler(None)
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    try:
+        ft.app(target=main, assets_dir="assets")
+    finally:
+        for file in export_folder.iterdir():
+            if file.is_file():
+                file.unlink()
+        print("L'application Flet est fermée.")

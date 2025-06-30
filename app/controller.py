@@ -18,8 +18,6 @@ from services.coollab_handler import (
 )
 from services.Coollab import Coollab
 
-export_folder_path = str(Path().resolve() / "assets" / "img" / "exp")
-
 def read_file(file_path: str) -> str:
     if not os.path.exists(file_path):
         try:
@@ -68,9 +66,11 @@ class Controller:
         self.coollab_path = None
         self.current_test_count = 0
         self.is_focused = False
+        self.waiting_for_export = False
+        self.export_folder_path = str(Path().resolve() / "assets" / "img")
         self.tests = [
             # TestData(1, "Test 1", img_ref="test1_o.png", img_exp="test1_e.png"),
-            TestData(2, "Test 2", img_ref="test2_o.png", img_exp="test2_e.png"),
+            # TestData(2, "Test 2", img_ref="test2_o.png", img_exp="test2_e.png"),
             # TestData(3, "Test 3", img_ref="test3_o.png", img_exp="test3_e.png"),
             # TestData(4, "Test 4", img_ref="test4_o.png", img_exp="test4_e.png"),
             # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_exp="test5_e.jpeg"),
@@ -92,6 +92,9 @@ class Controller:
         else:
             self.coollab_path = read_file('coollab_path_cache.txt') if read_file('coollab_path_cache.txt') != "" else ""
             return self.coollab_path
+    
+    def pursue(self):
+        self.waiting_for_export = False
 
 # --------------------------------------
 # UI Controller Methods
@@ -188,8 +191,9 @@ class Controller:
 # ------ Test Processing
 
     def relaunch_test(self, test_id: int):
-        # start_coollab(Path(self.get_coollab_path()))
+        start_coollab(Path(self.get_coollab_path()))
         with Coollab() as coollab:
+            coollab.on_image_export_finished(self.pursue)
             for test_data in self.tests:
                 if test_data.id == test_id:
                     self.reset_ui_on_relaunch(test_data)
@@ -204,12 +208,18 @@ class Controller:
                     self.update_single_test_result(test_id, test_data.score, test_data.status)
                     break
             self.test_panel.update()
+            coollab.close_app()
 
     def process_test(self, test_data: TestData, coollab: Coollab) -> dict[dict, float]:
         img_reference = load_img_from_assets(test_data.img_ref, "ref")
         if test_data.project_path and Path(test_data.project_path).exists():
             coollab.open_project(test_data.project_path)
-            coollab.export_image(folder=export_folder_path, filename=test_data.name, height=img_reference.shape[0], width=img_reference.shape[1])
+            sleep(2)  # Wait for project to load
+            self.waiting_for_export = True
+            coollab.export_image(folder=self.export_folder_path, filename=test_data.name, height=img_reference.shape[0], width=img_reference.shape[1])
+            while( self.waiting_for_export ):
+                print("Waiting for image export to finish...")
+                sleep(0.2)
         # sleep(3) // checking for image export finish
         if test_data.img_exp == "":
             test_data.img_exp = test_data.name+".png"
@@ -229,8 +239,9 @@ class Controller:
         # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
         
         self.set_coollab_path(coollab_path)
-        # start_coollab(Path(self.get_coollab_path()))
+        start_coollab(Path(self.get_coollab_path()))
         with Coollab() as coollab:
+            coollab.on_image_export_finished(self.pursue)
             if self.preview_panel:
                 self.preview_panel.start_test()
                 self.preview_panel.update()
@@ -258,4 +269,4 @@ class Controller:
                     self.update_single_test_result(test_id, test_data.score, test_data.status)
 
                 self.finalize_ui()
-                # coollab.close_app(True)
+                coollab.close_app()
