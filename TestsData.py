@@ -13,6 +13,10 @@ class TestData:
     def __post_init__(self):
         if self.results is None:
             self.results = {}
+    def reset(self):
+        self.score = 0.0
+        self.status = False
+        self.results = {}
 
 def get_test_data():
     return [

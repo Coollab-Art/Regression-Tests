@@ -167,7 +167,7 @@ class Controller:
             self.preview_panel.image_section.reset()
             self.preview_panel.update()
     # Reset test panel
-        self.test_panel.project_section.replace_tile(test_data.id, 0, False)
+        self.test_panel.project_section.replace_tile(test_data)
         self.current_test_count -= 1
         self.update_progress_bar(len(self.tests))
         self.test_panel.counter_section.decrement_current()
@@ -184,8 +184,9 @@ class Controller:
             coollab.on_image_export_finished(self.pursue)
             for test_data in self.tests:
                 if test_data.id == test_id:
+                    test_data.reset()
                     self.reset_ui_on_relaunch(test_data)
-
+                    print(f"Relaunching test: {test_data.name}")
                     test_result = self.process_test(test_data, coollab)
                     if test_result is not None:
                         test_data.score = test_result["score"]
@@ -244,6 +245,7 @@ class Controller:
     # --- Export img ---
         project_path = Path().resolve() / "assets" / "projects" / str(test_data.name+".coollab")
         if project_path.exists():
+            print("Opening project")
             coollab.open_project(str(project_path))
             sleep(2)  # Wait for project to load
             self.waiting_for_export = True
