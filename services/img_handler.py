@@ -23,6 +23,11 @@ def load_img_from_assets(img_name: str, img_folder: Optional[str] = None) -> np.
         raise FileNotFoundError(f"Image not found at {path}")
     return img
 
+def img_name_with_extension(img_name: str, extension: str = ".png") -> str:
+    if not img_name.endswith(extension):
+        img_name += extension
+    return img_name
+
 def cv2_to_base64(img):
     success, encoded_image = cv2.imencode(".png", img)
     if not success:
@@ -166,7 +171,7 @@ def process_difference_rgb(diff: np.ndarray, img_reference: np.ndarray, img_comp
     }
 
 ###########################
-# SHOWING
+# DISPLAY
 ###########################
 
 def show_all_diff(result_diff: dict[str, np.ndarray], img_reference: np.ndarray, img_comparison: np.ndarray) -> None:

@@ -3,8 +3,10 @@ from dataclasses import dataclass
 import os
 from time import sleep
 from pathlib import Path
+from slugify import slugify
 from services.img_handler import (
     load_img_from_assets,
+    img_name_with_extension,
     cv2_to_base64,
 
     calculate_similarity,
@@ -17,6 +19,11 @@ from services.coollab_handler import (
     start_coollab,
 )
 from services.Coollab import Coollab
+from TestsData import TestData, get_test_data
+
+# --------------------------------------
+# File operations
+# --------------------------------------
 
 def read_file(file_path: str) -> str:
     if not os.path.exists(file_path):
@@ -42,20 +49,9 @@ def write_file(file_path: str, content: str):
     except Exception as e:
         print(f"Error while writing on file : {e}")
 
-@dataclass
-class TestData:
-    id: int
-    name: str
-    project_path: str = ""
-    score: float = 0.0
-    status: bool = False
-    img_ref: str = ""
-    img_exp: str = ""
-    results: dict = None
-
-    def __post_init__(self):
-        if self.results is None:
-            self.results = {}
+# --------------------------------------
+# Controller Class
+# --------------------------------------
 
 class Controller:
 
@@ -68,14 +64,7 @@ class Controller:
         self.is_focused = False
         self.waiting_for_export = False
         self.export_folder_path = str(Path().resolve() / "assets" / "img")
-        self.tests = [
-            # TestData(1, "Test 1", img_ref="test1_o.png", img_exp="test1_e.png"),
-            # TestData(2, "Test 2", img_ref="test2_o.png", img_exp="test2_e.png"),
-            # TestData(3, "Test 3", img_ref="test3_o.png", img_exp="test3_e.png"),
-            # TestData(4, "Test 4", img_ref="test4_o.png", img_exp="test4_e.png"),
-            # TestData(5, "Test 5", img_ref="test5_o.jpeg", img_exp="test5_e.jpeg"),
-            TestData(6, "BlackHole","C:\\Users\\elvin\\AppData\\Roaming\\Coollab Launcher\\Projects\\Black_Hole_test.coollab", img_ref="test5_o.jpeg", img_exp=""),
-        ]
+        self.tests = get_test_data()
     
     def set_focus_state(self, focus_state: bool = False):
         self.is_focused = focus_state
@@ -115,14 +104,15 @@ class Controller:
         if self.preview_panel:
             for test_data in self.tests:
                 if test_data.id == test_id:
-                    display_text = test_data.name
+                    display_text = test_data.test_name
+                    img_name = slugify(test_data.name)
 
                     if filter == "threshold":
                         display_img = test_data.results["thresh"]
                     elif filter == "original":
-                        display_img = load_img_from_assets(test_data.img_ref, "ref")
+                        display_img = load_img_from_assets(img_name_with_extension(img_name), "ref")
                     elif filter == "exported":
-                        display_img = load_img_from_assets(test_data.img_exp, "exp")
+                        display_img = load_img_from_assets(img_name_with_extension(img_name, test_data.img_export_extension), "exp")
                     else:
                         display_img = test_data.results["outlined"]
 
@@ -162,8 +152,8 @@ class Controller:
         self.test_panel.path_section.update_progress(progress_value)
         self.test_panel.path_section.update()
 
-    def update_single_test_result(self, tid, s, st):
-        self.test_panel.project_section.replace_tile(tid, s, st)
+    def update_single_test_result(self, test_data: TestData):
+        self.test_panel.project_section.replace_tile(test_data)
         self.test_panel.counter_section.increment_current()
         self.test_panel.update()
     
@@ -174,12 +164,12 @@ class Controller:
         self.test_panel.path_section.update()
     
     def reset_ui_on_relaunch(self, test_data: TestData):
-        # Reset the preview panel if it was the selected test
+    # Reset the preview panel if it was the selected test
         if self.preview_panel.filter_section.selected_test_id == test_data.id:
             self.preview_panel.filter_section.reset()
             self.preview_panel.image_section.reset()
             self.preview_panel.update()
-        # Reset test panel
+    # Reset test panel
         self.test_panel.project_section.replace_tile(test_data.id, 0, False)
         self.current_test_count -= 1
         self.update_progress_bar(len(self.tests))
@@ -190,8 +180,7 @@ class Controller:
 
         self.test_panel.update()
 
-# ------ Test Processing
-
+# ------ Redo test
     def relaunch_test(self, test_id: int):
         start_coollab(Path(self.get_coollab_path()))
         with Coollab() as coollab:
@@ -207,37 +196,13 @@ class Controller:
                         test_data.results = test_result["results"]
                     self.current_test_count += 1
                     self.update_progress_bar(len(self.tests))
-                    self.update_single_test_result(test_id, test_data.score, test_data.status)
+                    self.update_single_test_result(test_data)
                     break
             self.test_panel.update()
             coollab.close_app()
 
-    def process_test(self, test_data: TestData, coollab: Coollab) -> dict[dict, float]:
-        img_reference = load_img_from_assets(test_data.img_ref, "ref")
-        if test_data.project_path and Path(test_data.project_path).exists():
-            coollab.open_project(test_data.project_path)
-            sleep(2)  # Wait for project to load
-            self.waiting_for_export = True
-            coollab.export_image(folder=self.export_folder_path, filename=test_data.name, height=img_reference.shape[0], width=img_reference.shape[1])
-            while( self.waiting_for_export ):
-                print("Waiting for image export to finish...")
-                sleep(0.3)
-        # sleep(3) // checking for image export finish
-        if test_data.img_exp == "":
-            test_data.img_exp = test_data.name+".png"
-        img_comparison = load_img_from_assets(test_data.img_exp, "exp")
-        score, diff = calculate_similarity(img_reference, img_comparison)
-        result_diff = process_difference_refined(diff, img_reference, img_comparison)
-        score = -np.log10(score)*10000
-        return {
-            'results': result_diff,
-            'score': score,
-        }
-
-# ---------- Launch Test Whole Method ----------
-
+# ---------- Launch all tests ----------
     def launch_test(self, coollab_path:str):
-
         # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
         
         self.set_coollab_path(coollab_path)
@@ -257,7 +222,7 @@ class Controller:
                     self.current_test_count += 1
                     test_id = test_data.id
 
-                    self.test_panel.project_section.add_processing_tile(test_id)
+                    self.test_panel.project_section.add_processing_tile(test_data)
                     self.test_panel.project_section.update()
 
                     test_result = self.process_test(test_data, coollab)
@@ -268,7 +233,36 @@ class Controller:
 
                     # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
                     self.update_progress_bar(total_pending)
-                    self.update_single_test_result(test_id, test_data.score, test_data.status)
+                    self.update_single_test_result(test_data)
 
                 self.finalize_ui()
                 coollab.close_app()
+
+    def process_test(self, test_data: TestData, coollab: Coollab) -> dict[dict, float]:
+
+    # --- Load img reference ---
+        img_name = slugify(test_data.name)
+        img_reference = load_img_from_assets(img_name_with_extension(img_name), "ref")
+
+    # --- Export img ---
+        project_path = Path().resolve() / "assets" / "projects" / str(test_data.name+".coollab")
+        if project_path.exists():
+            coollab.open_project(str(project_path))
+            sleep(2)  # Wait for project to load
+            self.waiting_for_export = True
+            coollab.export_image(folder=self.export_folder_path, filename=img_name, height=img_reference.shape[0], width=img_reference.shape[1], extension=test_data.img_export_extension)
+            while( self.waiting_for_export ):
+                print("Waiting for image export to finish...")
+                sleep(0.3)
+                
+    # --- Load exported img ---
+        img_comparison = load_img_from_assets(img_name_with_extension(img_name, test_data.img_export_extension), "exp")
+
+    # --- Test logic ---
+        score, diff = calculate_similarity(img_reference, img_comparison)
+        result_diff = process_difference_refined(diff, img_reference, img_comparison)
+        score = -np.log10(score)*10000
+        return {
+            'results': result_diff,
+            'score': score,
+        }

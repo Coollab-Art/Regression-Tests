@@ -71,3 +71,6 @@ if __name__ == "__main__":
         for file in export_folder.iterdir():
             if file.is_file():
                 file.unlink()
+
+# Exemple de commande pour l'app packagée : pyinstaller --noconsole --onefile --icon=assets/favicon.ico main.py
+# Permet de packager l'application en un seul fichier exécutable, avec une icône personnalisée

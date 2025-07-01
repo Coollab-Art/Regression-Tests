@@ -1,12 +1,15 @@
 import flet as ft
 from app.controller import Controller
+from TestsData import TestData
 
 dark_color = '#191C20'
 light_blue = '#A0CAFD'
 
 good_score_threshold = 200
 
-def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_tile_click, on_redo_click) -> ft.ListTile:
+def create_tile(controller:Controller, test_data: TestData, on_tile_click, on_redo_click) -> ft.ListTile:
+    status = test_data.status
+    score = test_data.score
     if not status:
         tile_color = ft.Colors.GREY_500
         tile_icon = ft.Icons.TIMER_SHARP
@@ -22,7 +25,7 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
 
     trailing_button = ft.ElevatedButton(
         content=ft.Icon(ft.Icons.RESTART_ALT_ROUNDED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
-        on_click=lambda e: on_redo_click(test_id),
+        on_click=lambda e: on_redo_click(test_data.id),
         style=ft.ButtonStyle(
             shape=ft.CircleBorder(),
             padding=0,
@@ -33,11 +36,11 @@ def create_tile(controller:Controller, test_id:int, score:int, status:bool, on_t
     
     return ft.ListTile(
         leading=ft.Icon(tile_icon, color=tile_color),
-        title=ft.Text(f"Test {test_id}", color=tile_color, size=16, weight=ft.FontWeight.W_500,),
+        title=ft.Text(test_data.test_name, color=tile_color, size=16, weight=ft.FontWeight.W_500,),
         subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
         trailing=trailing_button,
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
-        on_click=lambda e: on_tile_click(test_id) if status else None,
+        on_click=lambda e: on_tile_click(test_data.id) if status else None,
     )
 
 
@@ -64,13 +67,14 @@ class TestListSection(ft.Container):
         self.tiles_by_id.clear()
         self.selected_tile = None
 
-    def add_processing_tile(self, test_id: int):
-        pending_tile = create_tile(self.controller, test_id, 0, False, self.tile_click, self.redo_click)
+    def add_processing_tile(self, test_data: TestData):
+        pending_tile = create_tile(self.controller, test_data, self.tile_click, self.redo_click)
         self.lv.controls.append(pending_tile)
-        self.tiles_by_id[test_id] = pending_tile
+        self.tiles_by_id[test_data.id] = pending_tile
 
-    def replace_tile(self, test_id: int, score: int, status: bool):
-        result_tile = create_tile(self.controller, test_id, score, status, self.tile_click, self.redo_click)
+    def replace_tile(self, test_data: TestData):
+        result_tile = create_tile(self.controller, test_data, self.tile_click, self.redo_click)
+        test_id = test_data.id
         if test_id in self.tiles_by_id:
             processing_tile = self.tiles_by_id[test_id]
             try:
