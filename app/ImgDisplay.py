@@ -29,6 +29,7 @@ class ImgDisplay(ft.Container):
             content=self.label,
             alignment=ft.alignment.center,
             padding=ft.padding.all(10),
+            visible=True,
         )
         self.displayed_image = ft.Image(
             src=placeholder_path,
@@ -84,12 +85,8 @@ class ImgDisplay(ft.Container):
         self.displayed_image.src_base64 = None
         self.displayed_image.src = placeholder_path
         self.displayed_image.fit = ft.ImageFit.COVER
-        self.update_label('No image preview available yet')
-        self.label_container.alignment = ft.alignment.center
+        self.label.visible = True
         self.image_displayed = False
-
-    def update_label(self, new_text: str):
-        self.label.value = new_text
 
     def update_img(self, image: str):
         self.displayed_image.src = None
@@ -104,7 +101,6 @@ class ImgDisplay(ft.Container):
         if self.mouse_follower_container.visible:
             self.mouse_follower_container.visible = False
             self.mouse_follower_container.update()
-
     
     def update_color_picker(self, e: ft.ControlEvent):
         if not self.image_displayed:

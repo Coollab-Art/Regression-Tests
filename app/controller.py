@@ -104,7 +104,6 @@ class Controller:
         if self.preview_panel:
             for test_data in self.tests:
                 if test_data.id == test_id:
-                    display_text = test_data.test_name
                     img_name = slugify(test_data.name)
 
                     if filter == "threshold":
@@ -118,10 +117,8 @@ class Controller:
 
                     self.preview_panel.image_section.update_img(cv2_to_base64(display_img))
                     break
-                else:
-                    display_text = "No test found"
 
-            self.preview_panel.update_content(display_text)
+            self.preview_panel.image_section.label.visible = False
             self.preview_panel.image_section.update()
             self.preview_panel.filter_section.selected_test_id = test_id
             self.preview_panel.filter_section.update()
@@ -266,3 +263,8 @@ class Controller:
             'results': result_diff,
             'score': score,
         }
+    
+
+# --------------------------------------
+# Reference images Controller Methods
+# --------------------------------------

@@ -36,7 +36,3 @@ class PreviewPanel(ft.Container):
         self.filter_section.reset()
         self.image_section.reset()
 
-    def update_content(self, result: str):
-        self.image_section.update_label(result)
-        self.image_section.label_container.alignment = ft.alignment.bottom_left
-
