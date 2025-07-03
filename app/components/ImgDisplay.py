@@ -1,24 +1,18 @@
 import flet as ft
 from app.controller import Controller
 from pynput.mouse import Controller as MouseController
-from services.img_handler import (
+from services.utils import (
     get_hex,
     get_color_at_pos,
 )
+from app.theme.AppColors import AppColors
 
-dark_color = '#191C20'
-light_blue = '#A0CAFD'
 
 placeholder_path = "/img/logo.png"
 
 class ImgDisplay(ft.Container):
     def __init__(self, controller: Controller,  initial_text: str):
-        super().__init__(
-            bgcolor=ft.Colors.with_opacity(.3, dark_color),
-            padding=0,
-            margin=0,
-            expand=True,
-        )
+        super().__init__()
         self.controller = controller
         self.mouse_inside = False
         self.image_displayed = False
@@ -42,7 +36,7 @@ class ImgDisplay(ft.Container):
         # Color picker on hover
         self.mouse_follower_text_content = ft.Text(
             value="No color detected",
-            color=light_blue,
+            color=AppColors.LIGHT_BLUE,
             size=14,
             weight=ft.FontWeight.BOLD
         )
@@ -50,7 +44,7 @@ class ImgDisplay(ft.Container):
             content=self.mouse_follower_text_content,
             left=0,
             top=0,
-            bgcolor=ft.Colors.with_opacity(.6, dark_color),
+            bgcolor=ft.Colors.with_opacity(.6, AppColors.DARK),
             padding=ft.padding.symmetric(horizontal=10, vertical=5),
             border_radius=ft.border_radius.all(5),
             blur=5,
@@ -59,9 +53,11 @@ class ImgDisplay(ft.Container):
             expand=False,
         )
         self.mouse_ctrl = MouseController()
+        self._build()
 
-        # Display components
+    def _build(self):
         self.content=ft.GestureDetector(
+            # To do
             on_hover=lambda e: self.update_color_picker(e),
             on_exit=lambda e: self.hide_color_picker(e),
             content=ft.Stack(
@@ -80,6 +76,10 @@ class ImgDisplay(ft.Container):
             ),
             expand=True,
         )
+        self.bgcolor=ft.Colors.with_opacity(.3, AppColors.DARK)
+        self.padding=0
+        self.margin=0
+        self.expand=True
 
     def reset(self):
         self.displayed_image.src_base64 = None
@@ -87,18 +87,24 @@ class ImgDisplay(ft.Container):
         self.displayed_image.fit = ft.ImageFit.COVER
         self.label.visible = True
         self.image_displayed = False
+        self.mouse_inside = False
+        self.update()
 
     def update_img(self, image: str):
         self.displayed_image.src = None
         self.displayed_image.src_base64 = image
         self.displayed_image.fit = ft.ImageFit.CONTAIN
         self.image_displayed = True
+        self.displayed_image.update()
+        if self.label.visible:
+            self.label.visible = False
+            self.label.update()
     
     def hide_color_picker(self, e: ft.ControlEvent):
-        self.mouse_inside = False
-        self.mouse_follower_text_content.value="No color detected",
-        self.mouse_follower_text_content.color=light_blue,
-        if self.mouse_follower_container.visible:
+        if self.mouse_follower_container.visible or self.mouse_inside:
+            self.mouse_inside = False
+            self.mouse_follower_text_content.value="No color detected",
+            self.mouse_follower_text_content.color=AppColors.LIGHT_BLUE,
             self.mouse_follower_container.visible = False
             self.mouse_follower_container.update()
     
@@ -117,6 +123,7 @@ class ImgDisplay(ft.Container):
             self.mouse_follower_container.left = new_left
             self.mouse_follower_container.top = new_top
             self.update_color_picker_color()
+            self.mouse_follower_container.update()
         
     def update_color_picker_color(self):
         pos = self.mouse_ctrl.position
@@ -125,4 +132,3 @@ class ImgDisplay(ft.Container):
 
         self.mouse_follower_text_content.value = f"RGB: {rgb}"
         self.mouse_follower_text_content.color = hex_color
-        self.mouse_follower_container.update()

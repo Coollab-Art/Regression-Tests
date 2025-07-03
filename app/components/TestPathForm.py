@@ -1,11 +1,10 @@
 import flet as ft
 from app.controller import Controller
 import threading
+from app.theme.AppColors import AppColors
 
-dark_color = '#191C20'
-light_blue = '#A0CAFD'
 
-class PathSelection(ft.Container):
+class TestPathForm(ft.Container):
     def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
@@ -14,7 +13,6 @@ class PathSelection(ft.Container):
             icon=ft.Icons.FOLDER_OPEN,
             tooltip="Open file picker",
             on_click=self.open_file_picker,
-            # icon_color=light_blue
         )
         self.input_field = ft.TextField(
             label="Coollab version path",
@@ -26,9 +24,9 @@ class PathSelection(ft.Container):
             on_blur=lambda e: self.controller.set_focus_state(False),
         )
         self.submit_button = ft.ElevatedButton(
-            "Launch test",
+            "Launch all",
             icon=ft.Icons.PLAY_ARROW,
-            on_click = self.submit_clicked,
+            on_click = self.launch_all_clicked,
             style=ft.ButtonStyle(padding=ft.padding.only(left=10, right=15, top=18, bottom=20)),
         )
         self.progress_bar = ft.ProgressBar(value=0, expand=True)
@@ -57,7 +55,6 @@ class PathSelection(ft.Container):
         self.file_picker.pick_files(
             allow_multiple=False,
             allowed_extensions=["exe"],
-            # initial_directory="C:\\Program Files",
         )
     def on_file_picked(self, e: ft.FilePickerResultEvent):
         if e.files:
@@ -67,18 +64,22 @@ class PathSelection(ft.Container):
         else:
             print("File selection canceled")
     
-    def submit_clicked(self, e):
+    def launch_all_clicked(self, e):
         coollab_path = self.input_field.value
         if coollab_path.strip() != "":
-            threading.Thread(target=self.controller.launch_test, args=(coollab_path,)).start()
+            threading.Thread(target=self.controller.launch_all_tests, args=(coollab_path,)).start()
 
     def disable_controls(self):
         self.input_field.disabled = True
         self.submit_button.disabled = True
         self.browse_button.disabled = True
-    def update_progress(self, progress: int):
-        self.progress_bar.value = progress
+        self.update()
     def enable_controls(self):
         self.input_field.disabled = False
         self.submit_button.disabled = False
         self.browse_button.disabled = False
+        self.update()
+
+    def update_progress(self, progress: int):
+        self.progress_bar.value = progress
+        self.progress_bar.update()

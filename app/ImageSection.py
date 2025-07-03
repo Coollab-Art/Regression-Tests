@@ -1,12 +1,11 @@
 import flet as ft
 from app.controller import Controller
-from app.ImgFilter import ImgFilter
-from app.ImgDisplay import ImgDisplay
+from app.components.ImgFilter import ImgFilter
+from app.components.ImgDisplay import ImgDisplay
+from app.theme.AppColors import AppColors
 
-dark_color = '#191C20'
-light_blue = '#A0CAFD'
 
-class PreviewPanel(ft.Container):
+class ImagePanel(ft.Container):
     def __init__(self, controller: Controller, height: float):
         super().__init__()
         self.controller = controller
@@ -20,7 +19,7 @@ class PreviewPanel(ft.Container):
         self.content = ft.Column(
             [
                 self.filter_section,
-                ft.Divider(height=1, color=dark_color, thickness=2),
+                ft.Divider(height=1, color=AppColors.DARK, thickness=2),
                 self.image_section,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
@@ -28,11 +27,11 @@ class PreviewPanel(ft.Container):
             spacing=0,
         )
         self.padding = ft.padding.all(0)
-        self.bgcolor = ft.Colors.with_opacity(0.7, dark_color)
+        self.bgcolor = ft.Colors.with_opacity(0.7, AppColors.DARK)
         self.col = {"md": 8}
         self.height = self.height
-
-    def start_test(self):
-        self.filter_section.reset()
-        self.image_section.reset()
+# To do
+    # def start_test(self):
+    #     self.filter_section.reset()
+    #     self.image_section.reset()
 

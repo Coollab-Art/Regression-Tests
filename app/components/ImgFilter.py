@@ -1,9 +1,9 @@
 import flet as ft
 from app.controller import Controller
 from dataclasses import dataclass
+from app.theme.AppColors import AppColors
+from services.ImageType import ImageType
 
-dark_color = '#191C20'
-light_blue = '#A0CAFD'
 
 @dataclass
 class FilterButton:
@@ -23,10 +23,10 @@ class ImgFilter(ft.Container):
         )
         self.selected_test_id = None
         self.filters = [
-            FilterButton(name="Threshold", icon=ft.Icons.GRADIENT_OUTLINED, value="threshold", control=None, active=True),
-            FilterButton(name="Exported", icon=ft.Icons.COMPARE_OUTLINED, value="exported", control=None, active=False),
-            FilterButton(name="Original", icon=ft.Icons.IMAGE_OUTLINED, value="original", control=None, active=False),
-            # FilterButton(name="Outlined", icon=ft.Icons.IMAGE_SEARCH_OUTLINED, value="outlined", control=None, active=False),
+            FilterButton(name="Threshold", icon=ft.Icons.GRADIENT_OUTLINED, value=ImageType.THRESHOLD, control=None, active=True),
+            FilterButton(name="Original", icon=ft.Icons.IMAGE_OUTLINED, value=ImageType.ORIGINAL, control=None, active=False),
+            FilterButton(name="Exported", icon=ft.Icons.COMPARE_OUTLINED, value=ImageType.EXPORTED, control=None, active=False),
+            # FilterButton(name="Outlined", icon=ft.Icons.IMAGE_SEARCH_OUTLINED, value=ImageType.OUTLINED, control=None, active=False),
         ]
         self._build()
 
@@ -53,27 +53,28 @@ class ImgFilter(ft.Container):
         self.margin=0
         self.update_buttons()
     
-    def get_active_filter(self) -> str:
+    def get_active_filter(self) -> ImageType:
         for filter_data in self.filters:
             if filter_data.active:
                 return filter_data.value
-        return ""
+        return None
     
     def reset(self):
         self.selected_test_id = None
         for filter_data in self.filters:
-            filter_data.active = False if filter_data.value != "threshold" else True
+            filter_data.active = False if filter_data.value != ImageType.THRESHOLD else True
         self.update_buttons()
+        self.update()
     
-    def change_active_filter(self, filter_value: str):
+    def change_active_filter(self, filter_value: ImageType):
         for filter_data in self.filters:
             if filter_data.value == filter_value:
                 if filter_data.active:
-                    break
+                    return
                 else:
                     filter_data.active = True
                     if self.selected_test_id is not None:
-                        self.controller.update_preview(self.selected_test_id, filter_value)
+                        self.controller.update_img_display(self.selected_test_id, filter_value)
             else:
                 filter_data.active = False
         self.update_buttons()
@@ -84,8 +85,8 @@ class ImgFilter(ft.Container):
             button = filter_data.control
             if button is not None:
                 if filter_data.active:
-                    button.bgcolor = light_blue
-                    button.color = dark_color
+                    button.bgcolor = AppColors.LIGHT_BLUE
+                    button.color = AppColors.DARK
                 else:
-                    button.bgcolor = dark_color
-                    button.color = ft.Colors.with_opacity(.6, light_blue)
+                    button.bgcolor = AppColors.DARK
+                    button.color = ft.Colors.with_opacity(.6, AppColors.LIGHT_BLUE)

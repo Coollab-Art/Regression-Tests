@@ -1,14 +1,14 @@
 import flet as ft
 from app.controller import Controller
+from app.theme.AppColors import AppColors
 
-dark_color = '#191C20'
-light_blue = '#A0CAFD'
 
-class CounterSection(ft.Container):
+class TestFooter(ft.Container):
     def __init__(self, controller: Controller):
         super().__init__()
         self.controller = controller
-        self.current=ft.Text(value="0", color=ft.Colors.WHITE,  size=12)
+        self.current_count = 0
+        self.ended_test_num=ft.Text(value="0", color=ft.Colors.WHITE,  size=12)
         self.total_pending=ft.Text(value="/ ?", color=ft.Colors.WHITE,  size=12)
         self._build()
 
@@ -16,7 +16,7 @@ class CounterSection(ft.Container):
         self.content=ft.Row(
             [
                 ft.Text(value="Results :", color=ft.Colors.WHITE, size=12),
-                self.current,
+                self.ended_test_num,
                 self.total_pending,
             ],
             alignment=ft.MainAxisAlignment.END,
@@ -27,10 +27,15 @@ class CounterSection(ft.Container):
     def update_size(self, pending_size: int):
         self.total_pending.value = "/ " + str(pending_size)
         self.current_count = 0
-        self.current.value = "0"
+        self.ended_test_num.value = str(self.current_count)
+        self.update()
+
     def increment_current(self):
         self.current_count += 1
-        self.current.value = str(self.current_count)
+        self.ended_test_num.value = str(self.current_count)
+        self.update()
+
     def decrement_current(self):
         self.current_count -= 1
-        self.current.value = str(self.current_count)
+        self.ended_test_num.value = str(self.current_count)
+        self.update()
