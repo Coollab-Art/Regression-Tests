@@ -30,8 +30,8 @@ class ImagePanel(ft.Container):
         self.bgcolor = ft.Colors.with_opacity(0.7, AppColors.DARK)
         self.col = {"md": 8}
         self.height = self.height
-# To do
-    # def start_test(self):
-    #     self.filter_section.reset()
-    #     self.image_section.reset()
+
+    def reset(self):
+        self.filter_section.reset()
+        self.image_section.reset()
 

@@ -110,7 +110,7 @@ class TestList(ft.Container):
 
         self.controller.reset_img_filter()
         self.controller.update_img_display(test_id, ImageType.THRESHOLD)
-# To do
+
     def redo_click(self, test_id: int):
         print(f"Relaunching test {test_id}...")
         threading.Thread(target=self.controller.relaunch_test, args=(test_id,)).start()

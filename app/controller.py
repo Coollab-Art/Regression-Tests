@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from time import sleep
 from pathlib import Path
 from slugify import slugify
+import asyncio
 from services.img_handler import (
     load_img_from_assets,
     img_name_with_extension,
@@ -14,16 +15,16 @@ from services.img_handler import (
     process_difference_refined,
     process_difference_rgb,
 )
-from services.coollab_handler import (
-    start_coollab,
-)
 from services.Coollab import Coollab
 from TestsData import TestData, get_test_data
 from services.utils import (
     read_file,
     write_file,
+    ref_file_exist,
 )
 from services.ImageType import ImageType
+
+# coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
 
 # --------------------------------------
 # Controller Class
@@ -40,7 +41,6 @@ class Controller:
 
         self.current_test_count = 0
         self.waiting_for_export = False
-        self.export_folder_path = str(Path().resolve() / "assets" / "img")
         self.tests = get_test_data()
 
 # --------------------------------------
@@ -70,17 +70,10 @@ class Controller:
     def set_focus_state(self, focus_state: bool = False):
         self.is_focused = focus_state
 
-    def check_tests_validity(self) -> bool:
-        print("Checking tests validity...")
-        sleep(1)
-        return True
-    
-    def launch_all_tests(self, coollab_path: str):
-        print("Launching all tests...")
+# --------------------------------------
+# UI
+# --------------------------------------
 
-    def relaunch_test(self, test_id: int):
-        print("Relaunching test :", test_id)
-    
     def reset_img_filter(self):
         if self.image_panel:
             self.image_panel.filter_section.reset()
@@ -102,6 +95,72 @@ class Controller:
                     break
 
             self.image_panel.filter_section.selected_test_id = test_id
+
+# --------------------------------------
+# Tests
+# --------------------------------------
+
+    def check_tests_validity(self) -> bool:
+        for test_data in self.tests:
+            if not ref_file_exist(test_data):
+                print("Ref not exist")
+                self.launch_export(self.coollab, test_data, "ref")
+        return True
+    
+    def launch_all_tests(self):
+        # self.coollab.on_image_export_finished(self.pursue)
+        if self.image_panel:
+            self.image_panel.reset()
+        if self.test_panel:
+            self.reset_tests()
+            total_pending = len(self.tests)
+            self.test_panel.init_test(total_pending)
+
+            # self.current_test_count = 0
+            # for test_data in self.tests:
+            #     self.current_test_count += 1
+
+            #     self.test_panel.project_section.add_processing_tile(test_data)
+
+            #     test_result = self.process_test(test_data, self.coollab)
+            #     if test_result is not None:
+            #         test_data.score = test_result["score"]
+            #         test_data.status = True
+            #         test_data.results = test_result["results"]
+
+            #     # self.page.run_thread(lambda tid=test_id, s=score, st=status: self.update_single_test_result(self.current_test_count, total_pending, tid, s, st))
+            #     self.update_progress_bar(total_pending)
+            #     self.update_single_test_result(test_data)
+
+            # self.finalize_ui()
+
+    def relaunch_test(self, test_id: int):
+        print("Relaunching test :", test_id)
+
+    def reset_tests(self):
+        for test in self.tests:
+            test.score = 0.0
+            test.status = False
+            test.results = None
+
+# # --------------------------------------
+# # Utils methods
+# # --------------------------------------
+
+    async def launch_export(self, coollab: Coollab, test_data: TestData, folder: str, height: int | None = None, width: int | None = None):
+        project_path = Path(test_data.get_project_file_path)
+        folder_path = Path("assets/img") if folder is None else Path("assets/img") / folder
+        if project_path.exists():
+            print("Opening project")
+            await coollab.open_project(str(project_path))
+            await coollab.start_image_export(
+                width,
+                height,
+                folder= folder_path.resolve(),
+                filename=test_data.get_name(),
+                extension=test_data.img_export_extension,
+                export_file_overwrite=True,
+            )
 
 
 
@@ -129,13 +188,6 @@ class Controller:
 #             test.score = 0.0
 #             test.status = False
 #             test.results = None
-
-#     def initialize_ui_for_tests(self, total_pending: int):
-#         self.reset_tests()
-#         self.test_panel.start_test(total_pending)
-
-#         self.test_panel.path_section.update()
-#         self.test_panel.counter_section.update()
 
 #     def update_progress_bar(self, total_pending:int):
 #         progress_value = (1 / total_pending)*self.current_test_count if total_pending > 0 and self.current_test_count > 0 else 0

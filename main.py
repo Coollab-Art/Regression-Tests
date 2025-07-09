@@ -3,10 +3,14 @@ from app.Loading import Loading
 from app.TestSection import TestPanel
 from app.ImageSection import ImagePanel
 from app.controller import Controller
+from app.components.TestPathForm import TestPathForm
 from time import sleep
 from pathlib import Path
 from services.ImageType import ImageType
 import asyncio
+from services.coollab_handler import (
+    start_coollab,
+)
 
 export_folder = Path().resolve() / "assets" / "img" / "exp"
 
@@ -20,20 +24,84 @@ def main(page: ft.Page):
     page.padding = 0
 
     loading_container = Loading()
-    page.add(loading_container)
 
-    async def initialize_app():
+    async def hide_loading():
+            loading_container.opacity = 0
+            loading_container.update()
+            await asyncio.sleep(0.3)
+            page.controls.clear()
+    def show_loading():
+            page.controls.clear()
+            page.add(loading_container)
+            loading_container.opacity = 1
+            loading_container.update()
+    
+    async def try_start_coollab(controller: Controller):
+        coollab_path = controller.get_coollab_path()
 
-        controller = Controller(page)
-        controller.export_folder_path = str(export_folder)
+        if coollab_path.strip() == "":
+            return False
+        
+        try:
+            await asyncio.to_thread(start_coollab, Path(coollab_path))
+            return True
+        except Exception as e:
+            print(f"Error on Coollab launch : {e}")
+            return False
+    
+    async def coollab_path_loop(controller: Controller):
+        async def on_submit():
+            if await try_start_coollab(controller):
+                event.set()
+            else:
+                show_form(error=True)
 
-        await asyncio.to_thread(controller.check_tests_validity)
+        def show_form(error=False):
+            form = TestPathForm(controller, on_submit, submit_text="Launch Coollab")
+            error_text = ft.Text(value="Invalid path", color="red") if error else ft.Text("")
+            page.controls.clear()
+            page.add(
+                ft.Container(
+                    gradient=ft.LinearGradient(
+                        begin=ft.alignment.top_left,
+                        end=ft.alignment.bottom_right,
+                        colors=["#79B9CA", "#E1AB91", "#9E71C5", "#6568F3", "#A49CB3", "#A38699"],
+                    ),
+                    expand=True,
+                    content=ft.Column(
+                        [
+                            ft.Image(
+                                src="assets/img/logo.png",
+                                width=120,
+                                height=120,
+                                fit=ft.ImageFit.CONTAIN,
+                            ),
+                            ft.Text(
+                                "Valid Coollab path required",
+                                size=24,
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.WHITE,
+                            ),
+                            form,
+                            error_text,
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=30,
+                    ),
+                    alignment=ft.alignment.center,
+                    padding=40,
+                )
+            )
+            page.update()
+            
+        if await try_start_coollab(controller):
+            return
+        event = asyncio.Event()
+        show_form()
+        await event.wait()
 
-        loading_container.opacity = 0
-        loading_container.update()
-        await asyncio.sleep(0.3)
-        page.controls.clear()
-
+    async def display_app(controller: Controller):
         left_container = TestPanel(controller, page.height)
         right_container = ImagePanel(controller, page.height)
         controller.set_test_panel(left_container)
@@ -77,6 +145,15 @@ def main(page: ft.Page):
             )
         )
         resize_handler(None)
+
+    async def initialize_app():
+        controller = Controller(page)
+        await coollab_path_loop(controller)
+        show_loading()
+        # await controller.check_tests_validity()
+        # await hide_loading()
+        # await display_app(controller)
+
 
     page.run_task(initialize_app)
 

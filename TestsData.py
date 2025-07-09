@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from slugify import slugify
 
 @dataclass
 class TestData:
@@ -17,6 +18,15 @@ class TestData:
         self.score = 0.0
         self.status = False
         self.results = {}
+
+    def get_name(self):
+        return slugify(self.name)
+    def get_ref_file_path(self):
+        return f"assets/img/ref/{self.get_name()}.png"
+    def get_exp_file_path(self):
+        return f"assets/img/exp/{self.get_name()}{self.img_export_extension}"
+    def get_project_file_path(self):
+        return f"assets/projects/{self.get_name()}.coollab"
 
 def get_test_data():
     return [

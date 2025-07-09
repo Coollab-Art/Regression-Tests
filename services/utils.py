@@ -1,6 +1,8 @@
 import numpy as np
 import mss
 import os
+from TestsData import TestData
+from pathlib import Path
 
 # --------------------------------------
 # Color and Image Utilities
@@ -44,3 +46,10 @@ def write_file(file_path: str, content: str):
         print(f"Error : '{file_path}' not found")
     except Exception as e:
         print(f"Error while writing on file : {e}")
+
+def ref_file_exist(test_data: TestData) -> bool:
+    ref_file_path = test_data.get_ref_file_path()
+    if not Path(ref_file_path).exists():
+        print(f"Reference file '{ref_file_path}' does not exist.")
+        return False
+    return True

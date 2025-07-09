@@ -2,14 +2,13 @@ import numpy as np
 import cv2
 from skimage.metrics import structural_similarity as ssim
 import base64
-from typing import Optional
 from pathlib import Path
 
 ###########################
 # UTILS
 ###########################
 
-def load_img_from_assets(img_name: str, img_folder: Optional[str] = None) -> np.ndarray:
+def load_img_from_assets(img_name: str, img_folder: str | None = None) -> np.ndarray:
     img_dir = Path("assets/img")
     if img_folder:
         img_dir = img_dir / img_folder

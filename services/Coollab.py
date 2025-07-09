@@ -2,7 +2,6 @@ from typing import Callable
 import websocket
 import json
 import threading
-from typing import Optional
 
 
 can_start = False
@@ -56,7 +55,7 @@ class Coollab:
             print("Export finished")
             self._callback()
 
-    def export_image(self, folder: Optional[str] = None, filename: Optional[str] = None, extension: Optional[str] = ".png", width: Optional[int] = None, height: Optional[int] = None) -> None:
+    def export_image(self, folder: str | None = None, filename: str | None = None, extension: str | None = ".png", width: int | None = None, height: int | None = None) -> None:
         self._send_command(
             "ExportImage",
             {
