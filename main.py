@@ -33,10 +33,12 @@ def main(page: ft.Page):
     async def initialize_app():
         controller = Controller(page)
         await coollab_path_loop(page, controller)
-        show_loading()
-        # await controller.check_tests_validity()
+        display_app(page, controller)
+        # TODO init all test tiles
+        await controller.check_tests_validity()
+        controller.test_panel.update_progress(0)
+        # show_loading()
         # await hide_loading()
-        # display_app(page, controller)
 
     page.run_task(initialize_app)
 
@@ -44,6 +46,7 @@ if __name__ == "__main__":
     try:
         ft.app(target=main, assets_dir="assets")
     finally:
+        # todo close coollab with controller.coollab.close_app()
         for file in export_folder.iterdir():
             if file.is_file():
                 file.unlink()

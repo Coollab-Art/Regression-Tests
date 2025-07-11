@@ -1,7 +1,9 @@
+from time import sleep
 from typing import Callable
 import websocket
 import json
 import threading
+import asyncio
 
 
 can_start = False
@@ -16,58 +18,62 @@ def on_open(ws):
 class Coollab:
     _ws: websocket.WebSocketApp
     _callback: Callable[[], None]
+    _next_id: int = 0
+    _future: asyncio.Future
 
     def __init__(self, host: str = "127.0.0.1", port: int = 12345) -> None:
-        global can_start
-        can_start = False
         self._ws = websocket.WebSocketApp(
             f"ws://{host}:{port}", on_open=on_open, on_message=self._on_message
         )
-        self.thread = threading.Thread(target=self._ws.run_forever)
-        self.thread.daemon = True
-        self.thread.start()
+        thread = threading.Thread(target=self._ws.run_forever)
+        thread.daemon = True
+        thread.start()
         while not can_start:  # Wait until websocket connection is created
             pass
-    
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print("Closing WebSocket...")
-        try:
-            self._ws.close()
-            self.thread.join(timeout=2)
-            if self.thread.is_alive():
-                print("⚠️ Thread WebSocket didn'tclose properly")
-            else:
-                print("✅ Thread WebSocket correctly closed")
-        except Exception as e:
-            print("Error on shutdown :", e)
 
     def _send_command(self, command: str, params: dict):
         params["command"] = command
+        params["command_id"] = self._next_id
+        self._next_id += 1
         self._ws.send(json.dumps(params))
 
     def _on_message(self, ws, message):
         print("Received:", message)
         d = json.loads(message)
         if d["event"] == "ImageExportFinished":
-            print("Export finished")
             self._callback()
+        elif d["event"] == "OpenedProject":
+            self._loop.call_soon_threadsafe(
+                self._future.set_result, None
+            )  # TODO use command_id to know which future to set
+        elif d["event"] == "ImageExportStarted":
+            self._loop.call_soon_threadsafe(self._future.set_result, None)
 
-    def export_image(self, folder: str | None = None, filename: str | None = None, extension: str | None = ".png", width: int | None = None, height: int | None = None) -> None:
+    # Starts the export, it only only be finished a lot later, and then the callback on_image_export_finished() will be called
+    async def start_image_export(
+        self,
+        width: int = 500,
+        height: int = 500,
+        folder: str | None = None,
+        filename: str | None = None,
+        extension: str | None = None,
+        export_file_overwrite: bool = False,
+    ) -> None:
         self._send_command(
             "ExportImage",
             {
-                "folder": folder,
-                "filename": filename,
-                "extension": extension,
                 "width": width,
                 "height": height,
-                "project_autosave": False,
-                "export_file_overwrite": True
+                "format": ".png",
+                "folder": folder,  # TODO handle the case where it is None
+                "filename": filename,  # TODO handle the case where it is None
+                "extension": extension,  # TODO handle the case where it is None
+                "export_file_overwrite": export_file_overwrite,
             },
         )
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
+        await self._future
 
     def log(self, title: str, content: str) -> None:
         self._send_command(
@@ -86,48 +92,16 @@ class Coollab:
             },
         )
 
-    def open_project(self, project_path: str) -> None:
+    async def open_project(self, path: str) -> None:
         self._send_command(
             "OpenProject",
             {
-                "project_path": project_path,
+                "path": path,
             },
         )
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
+        await self._future
 
     def on_image_export_finished(self, callback: Callable[[], None]) -> None:
         self._callback = callback
-
-
-# coollab = Coollab()
-
-# IMAGE_MAX = 10
-# image_count = 0
-
-# has_finished_exporting = False
-
-
-# def increase_image_count():
-#     global image_count
-#     global has_finished_exporting
-#     image_count += 1
-#     print(image_count)
-#     if image_count == IMAGE_MAX:
-#         coollab.close_app()
-#         has_finished_exporting = True
-
-
-# coollab.on_image_export_finished(increase_image_count)
-# for i in range(10):
-#     coollab.log(title="Script", content=f"This is {i}")
-#     coollab.export_image(2000, 2000)
-
-# # Need to keep the script running to listen to the responses from Coollab
-# while not has_finished_exporting:
-#     pass
-
-# for i in range(IMAGE_MAX):
-#     coollab.export_image(width=500, height=500)
-#     coollab.wait_message()
-#     # sleep(0.5)
-# # for i in range(IMAGE_MAX):
-# #     coollab.wait_message()

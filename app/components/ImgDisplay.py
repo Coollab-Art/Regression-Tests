@@ -57,7 +57,7 @@ class ImgDisplay(ft.Container):
 
     def _build(self):
         self.content=ft.GestureDetector(
-            # To do
+            # TODO
             on_hover=lambda e: self.update_color_picker(e),
             on_exit=lambda e: self.hide_color_picker(e),
             content=ft.Stack(

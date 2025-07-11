@@ -28,7 +28,7 @@ class TestPathForm(ft.Container):
         self.submit_button = ft.ElevatedButton(
             submit_text,
             icon=ft.Icons.PLAY_ARROW,
-            on_click=lambda e: self.controller.page.run_task(self.on_submit, e),
+            on_click=self.on_submit,
             style=ft.ButtonStyle(padding=ft.padding.only(left=10, right=15, top=18, bottom=20)),
         )
         self._build()
@@ -64,10 +64,7 @@ class TestPathForm(ft.Container):
         coollab_path = self.input_field.value
         if coollab_path.strip() != "":
             self.controller.set_coollab_path(coollab_path)
-            if inspect.iscoroutinefunction(self.submit_action):
-                await self.submit_action()
-            else:
-                await asyncio.to_thread(self.submit_action)
+            await self.submit_action()
 
     def disable_controls(self):
         self.input_field.disabled = True

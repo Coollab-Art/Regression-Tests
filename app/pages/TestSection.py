@@ -13,7 +13,7 @@ class TestPanel(ft.Container):
         self.height = height
         
         self.path_section = TestPathForm(self.controller, self.controller.launch_all_tests, submit_text="Launch All Tests")
-        self.progress_bar = ft.ProgressBar(value=0, expand=True)
+        self.progress_bar = ft.ProgressBar(value=0, expand=True, height=5)
         self.project_section = TestList(self.controller)
         self.counter_section = TestFooter(self.controller)
 
@@ -37,12 +37,6 @@ class TestPanel(ft.Container):
         self.bgcolor = ft.Colors.with_opacity(0.6, AppColors.DARK)
         self.col = {"md": 4}
         self.height = self.height
-
-    def init_test(self, pending_number:int):
-        self.path_section.disable_controls()
-        self.project_section.clear_view()
-        self.counter_section.update_size(pending_number)
-        self.update_progress(0)
     
     def update_progress(self, progress: int):
         self.progress_bar.value = progress

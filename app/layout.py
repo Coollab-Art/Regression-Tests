@@ -1,8 +1,8 @@
 # app/ui/layout.py
 import flet as ft
 from services.ImageType import ImageType
-from app.TestSection import TestPanel
-from app.ImageSection import ImagePanel
+from app.pages.TestSection import TestPanel
+from app.pages.ImageSection import ImagePanel
 
 def display_app(page: ft.Page, controller):
     left_container = TestPanel(controller, page.height)

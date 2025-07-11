@@ -8,20 +8,23 @@ from pathlib import Path
 # UTILS
 ###########################
 
-def load_img_from_assets(img_name: str, img_folder: str | None = None) -> np.ndarray:
-    img_dir = Path("assets/img")
-    if img_folder:
-        img_dir = img_dir / img_folder
-    path = img_dir / img_name
+def load_img(path: Path) -> np.ndarray:
     img = cv2.imread(path)
     if img is None:
         raise FileNotFoundError(f"Image not found at {path}")
     return img
 
-def img_name_with_extension(img_name: str, extension: str = ".png") -> str:
-    if not img_name.endswith(extension):
-        img_name += extension
-    return img_name
+def load_img_from_assets(img_name: str, img_folder: str | None = None) -> np.ndarray:
+    img_dir = Path("assets/img")
+    if img_folder:
+        img_dir = img_dir / img_folder
+    path = img_dir / img_name
+    return load_img(path)
+
+# def img_name_with_extension(img_name: str, extension: str = ".png") -> str:
+#     if not img_name.endswith(extension):
+#         img_name += extension
+#     return img_name
 
 def cv2_to_base64(img):
     success, encoded_image = cv2.imencode(".png", img)

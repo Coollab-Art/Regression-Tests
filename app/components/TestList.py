@@ -1,50 +1,10 @@
 import flet as ft
 from app.controller import Controller
-from TestsData import TestData
+from TestsData import TestData, TestStatus
 from app.theme.AppColors import AppColors
 import threading
 from services.ImageType import ImageType
-
-
-good_score_threshold = 200
-
-def create_tile(controller:Controller, test_data: TestData, on_tile_click, on_restart_click) -> ft.ListTile:
-    status = test_data.status
-    score = test_data.score
-    if not status:
-        tile_color = ft.Colors.GREY_500
-        tile_icon = ft.Icons.TIMER_SHARP
-    else:
-        if score <= good_score_threshold:
-            tile_color = ft.Colors.GREEN_ACCENT_700
-            tile_icon = ft.Icons.CHECK_CIRCLE_OUTLINED
-        else :
-            tile_color = ft.Colors.RED_ACCENT_400
-            tile_icon = ft.Icons.CANCEL_OUTLINED
-
-    subtitle_text = "Processing..." if not status else "Result : " + str(score)
-
-    trailing_button = ft.ElevatedButton(
-        content=ft.Icon(ft.Icons.RESTART_ALT_ROUNDED, color=ft.Colors.SECONDARY if status else ft.Colors.GREY_800),
-        on_click=lambda e: on_restart_click(test_data.id),
-        style=ft.ButtonStyle(
-            shape=ft.CircleBorder(),
-            padding=0,
-            bgcolor=AppColors.DARK,
-        ),
-        disabled=True if not status else False,
-    )
-    
-    return ft.ListTile(
-        leading=ft.Icon(tile_icon, color=tile_color),
-        title=ft.Text(test_data.test_name, color=tile_color, size=16, weight=ft.FontWeight.W_500,),
-        subtitle=ft.Text(subtitle_text, color=tile_color, size=13, weight=ft.FontWeight.W_400, italic=True,),
-        trailing=trailing_button,
-        bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
-        on_click=lambda e: on_tile_click(test_data.id) if status else None,
-    )
-
-
+from app.components.Tile import create_tile
 
 class TestList(ft.Container):
     def __init__(self, controller: Controller):
@@ -63,7 +23,7 @@ class TestList(ft.Container):
         )
         self.expand=True
 
-    def clear_view(self):
+    def clear_test_view(self):
         self.lv.controls.clear()
         self.tiles_by_id.clear()
         self.selected_tile_id = None

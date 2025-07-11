@@ -4,6 +4,7 @@ from pathlib import Path
 import flet as ft
 from services.coollab_handler import start_coollab
 from app.components.TestPathForm import TestPathForm
+from services.Coollab import Coollab
 
 async def try_start_coollab(controller):
     path = controller.get_coollab_path().strip()
@@ -11,6 +12,7 @@ async def try_start_coollab(controller):
         return False
     try:
         await asyncio.to_thread(start_coollab, Path(path))
+        controller.coollab = Coollab()
         return True
     except Exception as e:
         print(f"Error on Coollab launch: {e}")
