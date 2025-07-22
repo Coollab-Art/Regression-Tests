@@ -6,7 +6,7 @@ from app.theme.AppColors import AppColors
 
 
 class TestPathForm(ft.Container):
-    def __init__(self, controller: Controller, submit_action, submit_text: str = "Submit"):
+    def __init__(self, controller: Controller, submit_text: str = "Submit", submit_action = None):
         super().__init__()
         self.controller = controller
         self.submit_action = submit_action
@@ -58,13 +58,18 @@ class TestPathForm(ft.Container):
             self.input_field.value = selected_path
             self.input_field.update()
         else:
-            print("File selection canceled")
+            print("[INFO] File selection canceled")
     
     async def on_submit(self, e):
         coollab_path = self.input_field.value
         if coollab_path.strip() != "":
+            if self.controller.coollab is None or coollab_path != self.controller.get_coollab_path():
+                await self.controller.relaunch_coollab(coollab_path)
             self.controller.set_coollab_path(coollab_path)
-            await self.submit_action()
+            if self.submit_action:
+                await self.submit_action()
+        else:
+            print("[Error] Please enter a valid path")
 
     def disable_controls(self):
         self.input_field.disabled = True

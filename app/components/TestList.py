@@ -29,14 +29,8 @@ class TestList(ft.Container):
         self.selected_tile_id = None
         self.lv.update()
 
-    def add_processing_tile(self, test_data: TestData):
-        pending_tile = create_tile(self.controller, test_data, self.tile_click, self.redo_click)
-        self.lv.controls.append(pending_tile)
-        self.tiles_by_id[test_data.id] = pending_tile
-        self.lv.update()
-
-    def replace_tile(self, test_data: TestData):
-        new_tile = create_tile(self.controller, test_data, self.tile_click, self.redo_click)
+    def update_tile(self, test_data: TestData):
+        new_tile = create_tile(self.controller, test_data, self.tile_click)
         test_id = test_data.id
         if test_id in self.tiles_by_id:
             existing_tile = self.tiles_by_id[test_id]
@@ -45,9 +39,9 @@ class TestList(ft.Container):
                 self.lv.controls[index] = new_tile
                 self.tiles_by_id[test_id] = new_tile
             except ValueError:
-                print(f"Error: Test ID {test_id} not found in the list for update")
+                print(f"[ERROR] Test ID {test_id} not found in the list for update")
         else:
-            print(f"Warning: Attempt to update non-existent Test ID {test_id}... adding non-initialized test")
+            # print(f"[INFO] Adding new tile for test ID {test_id}")
             self.lv.controls.append(new_tile)
             self.tiles_by_id[test_id] = new_tile
         self.lv.update()
@@ -56,7 +50,7 @@ class TestList(ft.Container):
         clicked_tile = self.tiles_by_id.get(test_id)
         
         if clicked_tile is None:
-            print(f"Error: Tile with ID {test_id} not found on click")
+            print(f"[ERROR] Tile with ID {test_id} not found on click")
             return
 
         if self.selected_tile_id is not None and self.selected_tile_id != test_id:
@@ -70,7 +64,3 @@ class TestList(ft.Container):
 
         self.controller.reset_img_filter()
         self.controller.update_img_display(test_id, ImageType.THRESHOLD)
-
-    def redo_click(self, test_id: int):
-        print(f"Relaunching test {test_id}...")
-        threading.Thread(target=self.controller.relaunch_test, args=(test_id,)).start()

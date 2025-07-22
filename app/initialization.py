@@ -5,33 +5,23 @@ import flet as ft
 from services.coollab_handler import start_coollab
 from app.components.TestPathForm import TestPathForm
 from services.Coollab import Coollab
+from time import sleep
+from app.controller import Controller
 
-async def try_start_coollab(controller):
-    path = controller.get_coollab_path().strip()
-    if not path:
-        return False
-    try:
-        await asyncio.to_thread(start_coollab, Path(path))
-        controller.coollab = Coollab()
-        return True
-    except Exception as e:
-        print(f"Error on Coollab launch: {e}")
-        return False
-
-async def coollab_path_loop(page: ft.Page, controller):
-    if await try_start_coollab(controller):
+async def coollab_path_loop(page: ft.Page, controller: Controller):
+    if await controller.try_start_coollab(controller.get_coollab_path()):
         return
-
+    
     event = asyncio.Event()
 
     async def on_submit():
-        if await try_start_coollab(controller):
+        if controller.coollab is not None:
             event.set()
         else:
             show_form(error=True)
 
     def show_form(error=False):
-        form = TestPathForm(controller, on_submit, submit_text="Launch Coollab")
+        form = TestPathForm(controller, submit_text="Launch Coollab", submit_action=on_submit)
         error_text = ft.Text("Invalid path", color="red") if error else ft.Text("")
         page.controls.clear()
         page.add(

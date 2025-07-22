@@ -4,6 +4,7 @@ from app.components.TestPathForm import TestPathForm
 from app.components.TestList import TestList
 from app.components.TestFooter import TestFooter
 from app.theme.AppColors import AppColors
+from pathlib import Path
 
 
 class TestPanel(ft.Container):
@@ -12,8 +13,8 @@ class TestPanel(ft.Container):
         self.controller = controller
         self.height = height
         
-        self.path_section = TestPathForm(self.controller, self.controller.launch_all_tests, submit_text="Launch All Tests")
-        self.progress_bar = ft.ProgressBar(value=0, expand=True, height=5)
+        self.path_section = TestPathForm(self.controller, submit_text="Launch All Tests", submit_action=self.controller.launch_all_tests)
+        self.progress_bar = ft.ProgressBar(value=0.005, expand=True, height=5, bgcolor=AppColors.DARK)
         self.project_section = TestList(self.controller)
         self.counter_section = TestFooter(self.controller)
 
@@ -23,7 +24,7 @@ class TestPanel(ft.Container):
         self.content = ft.Column(
             [
                 self.path_section,
-                self.progress_bar,
+                ft.Container(content=self.progress_bar,height=5,),
                 ft.Divider(height=1, color=AppColors.DARK, thickness=1),
                 self.project_section,
                 ft.Divider(height=1, color=AppColors.DARK, thickness=1),
@@ -41,3 +42,10 @@ class TestPanel(ft.Container):
     def update_progress(self, progress: int):
         self.progress_bar.value = progress
         self.progress_bar.update()
+    
+    def disable_controls(self):
+        self.path_section.disable_controls()
+        self.counter_section.disable_controls()
+    def enable_controls(self):
+        self.path_section.enable_controls()
+        self.counter_section.enable_controls()

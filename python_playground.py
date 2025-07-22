@@ -1,48 +1,95 @@
-import os
-import sys
-import time
-import random
-import subprocess
-import time
-# from img_handler import (
-#     load_img,
+import flet as ft
+from pynput.mouse import Controller as MouseController
 
-#     calculate_similarity,
-#     calculate_similarity_diff,
+def main(page: ft.Page):
+    page.title = "Menu contextuel (pynput)"
+    page.padding = 30
 
-#     process_difference,
-#     process_difference_refined,
-#     process_difference_rgb,
+    mouse = MouseController()
+    context_menu = ft.Container(visible=False)
 
-#     show_all_diff,
-#     show_diff,
-#     show_mask,
-#     show_outlined,
-#     show_test,
-# )
+    def hide_context_menu():
+        context_menu.visible = False
+        page.update()
 
-def main() -> None:
-    # img_comparison = load_img_from_assets('chess-altered-hard.png')
-    # img_reference = load_img_from_assets('chess.png')
+    def on_redo_click(test_id):
+        print(f"Refaire test {test_id}")
+        hide_context_menu()
 
-    # score, diff = calculate_similarity(img_reference, img_comparison)
-    # result_diff = process_difference_refined(diff, img_reference, img_comparison)
-    # score, diff = calculate_similarity_diff(img_reference, img_comparison)
-    # result_diff = process_difference_3(diff, img_reference, img_comparison)
+    def on_tile_click(test_id):
+        print(f"Tile cliquée (ID: {test_id})")
 
-    # print("Average SSIM:", score)
-    # print("Similarity Score: {:.5f}%".format(score * 100))
+    def on_secondary_tap(e: ft.ControlEvent, test_id: int):
+        pos = mouse.position  # Position globale
+        screen_x, screen_y = pos[0], pos[1]
 
-    # show_outlined(result_diff)
-    # show_diff(result_diff)
-    # show_outlined(result_diff, img_reference)
-    # show_all_diff(result_diff, img_reference, img_comparison)
+        # Convertir en position relative à la fenêtre Flet
+        # Ici on considère que Flet est en haut à gauche
+        offset_x = -50
+        offset_y = -75
 
-    # show_test(result_diff, img_reference, img_comparison)
+        context_menu.left = screen_x + offset_x
+        context_menu.top = screen_y + offset_y
+        # context_menu.left = screen_x
+        # context_menu.top = screen_y
+        context_menu.content = ft.Column(
+            controls=[
+                ft.TextButton("🔁 Refaire le test", on_click=lambda e: on_redo_click(test_id)),
+            ],
+            tight=True,
+        )
+        context_menu.visible = True
+        page.update()
 
-    process = subprocess.Popen(['C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe', '--open_project', 'C:/Users/elvin/AppData/Roaming/Coollab Launcher/Projects/Test.coollab'])
-    # process = subprocess.Popen(['C:/Users/elvin/AppData/Roaming/"Coollab Launcher"/"Installed Versions"/"1.2.0 MacOS"/Coollab.exe'])
-    # time.sleep(5)
-    # process.terminate()
+    test_data = {
+        "id": 1,
+        "test_name": "Test mémoire",
+        "status": True,
+        "score": 92,
+    }
 
-main()
+    tile_color = ft.Colors.GREEN_ACCENT_700 if test_data["score"] < 80 else ft.Colors.RED_ACCENT_400
+    tile_icon = ft.Icons.CHECK_CIRCLE_OUTLINED if test_data["score"] < 80 else ft.Icons.CANCEL_OUTLINED
+    subtitle_text = f"Résultat : {test_data['score']}"
+
+    tile = ft.ListTile(
+        leading=ft.Icon(tile_icon, color=tile_color),
+        title=ft.Text(test_data["test_name"], color=tile_color, size=16, weight=ft.FontWeight.W_500),
+        subtitle=ft.Text(subtitle_text, italic=True, color=tile_color, size=13),
+        trailing=ft.IconButton(icon=ft.Icons.RESTART_ALT, on_click=lambda e: on_redo_click(test_data["id"])),
+        on_click=lambda e: on_tile_click(test_data["id"]),
+        bgcolor=ft.Colors.with_opacity(0.05, "#191C20"),
+        shape=ft.RoundedRectangleBorder(radius=12),
+    )
+
+
+    gesture_tile = ft.GestureDetector(
+        on_secondary_tap=lambda e: on_secondary_tap(e, test_data["id"]),
+        content=tile
+    )
+
+    context_menu = ft.Container(
+        visible=False,
+        bgcolor=ft.Colors.WHITE,
+        border=ft.border.all(1, ft.Colors.GREY_400),
+        border_radius=8,
+        padding=10,
+        shadow=ft.BoxShadow(
+            blur_radius=12,
+            spread_radius=1,
+            color=ft.Colors.BLACK26,
+            offset=ft.Offset(0, 2),
+        ),
+    )
+
+    # Clic global pour fermer le menu
+    page.on_click = lambda e: hide_context_menu()
+
+    page.add(
+        ft.Stack(
+            controls=[gesture_tile, context_menu],
+            expand=True,
+        )
+    )
+
+ft.app(target=main)

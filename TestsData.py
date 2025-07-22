@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from slugify import slugify
+from pathlib import Path
 
 class TestStatus:
     PASSED: str = "Passed"
@@ -27,14 +28,20 @@ class TestData:
         self.status = TestStatus.READY
         self.results = {}
 
-    def get_ref_file_path(self):
-        return f"assets/img/ref/{self.name}.png"
-    def get_project_file_path(self):
-        return f"assets/projects/{self.name}.coollab"
+    def get_ref_file_path(self, folder: Path = Path("assets/img/ref")) -> Path | None:
+        for file in folder.glob(f"{self.name}.*"):
+            if file.is_file():
+                # print("File found : "+str(file.resolve()))
+                return file.resolve()
+        return None
+    
+    def get_project_file_path(self) -> Path:
+        return (Path("assets/projects") / f"{self.name}.coollab").resolve()
 
 def get_test_data():
+    # TODO parse folder
     return [
-        TestData(1, project_name="Black Hole"),
+        TestData(1, project_name="BlackHole"),
         TestData(2, project_name="fractale"),
         TestData(3, project_name="bruit"),
         TestData(4, project_name="rond"),

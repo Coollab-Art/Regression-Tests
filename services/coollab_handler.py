@@ -9,7 +9,8 @@ def start_coollab(coollab_path: Path):
 
     try:
         process = subprocess.Popen([
-            str(coollab_path)
+            str(coollab_path),
+            '--hide_window'
             # '--open_project',
             # str(project_path)
         ])

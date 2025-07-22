@@ -5,8 +5,10 @@ from app.Loading import Loading
 from app.initialization import coollab_path_loop
 from app.layout import display_app
 import asyncio
+from services.Coollab import Coollab
 
 export_folder = Path().resolve() / "assets" / "img" / "exp"
+controller: Controller | None = None
 
 def main(page: ft.Page):
     page.title = "Coollab regression test"
@@ -25,20 +27,24 @@ def main(page: ft.Page):
         loading.update()
 
     async def hide_loading():
-        loading.opacity = 0
-        loading.update()
-        await asyncio.sleep(0.3)
+        if loading in page.controls:
+            loading.opacity = 0
+            loading.update()
+            await asyncio.sleep(0.3)
         page.controls.clear()
 
     async def initialize_app():
+        global controller
         controller = Controller(page)
+        show_loading()
         await coollab_path_loop(page, controller)
+        # controller.coollab = Coollab()
+        await hide_loading()
         display_app(page, controller)
-        # TODO init all test tiles
+        controller.init_test_tiles()
         await controller.check_tests_validity()
-        controller.test_panel.update_progress(0)
-        # show_loading()
-        # await hide_loading()
+        controller.update_all_test_tiles()
+        controller.test_panel.update_progress(0.005)
 
     page.run_task(initialize_app)
 
@@ -46,7 +52,8 @@ if __name__ == "__main__":
     try:
         ft.app(target=main, assets_dir="assets")
     finally:
-        # todo close coollab with controller.coollab.close_app()
+        if controller and getattr(controller, "coollab", None):
+            controller.coollab.close_app()
         for file in export_folder.iterdir():
             if file.is_file():
                 file.unlink()
