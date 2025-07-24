@@ -102,5 +102,3 @@ Click on a tested project to:
 ## 👨‍💻 Authors
 
 Created by **[Elvin Kauffmann](https://github.com/ShadowsHood)** with support from **[Jules Fouchy](https://github.com/JulesFouchy)**
-
-Coollab © — All rights reserved.
