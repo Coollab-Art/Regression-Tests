@@ -22,7 +22,7 @@ from services.ImageType import ImageType
 from pynput.mouse import Controller as MouseController
 
 # coollab_path= "C:/Users/elvin/AppData/Roaming/Coollab Launcher/Installed Versions/1.2.0 MacOS/Coollab.exe"
-good_score_threshold = 200
+good_score_threshold = 50
 
 # --------------------------------------
 # Controller Class
