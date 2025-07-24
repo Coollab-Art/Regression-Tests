@@ -39,10 +39,11 @@ class TestData:
         return (Path("assets/projects") / f"{self.name}.coollab").resolve()
 
 def get_test_data():
-    # TODO parse folder
-    return [
-        TestData(1, project_name="BlackHole"),
-        TestData(2, project_name="fractale"),
-        TestData(3, project_name="bruit"),
-        TestData(4, project_name="rond"),
-    ]
+    project_dir = Path("assets/projects")
+    files = project_dir.glob("*.coollab")
+
+    test_data_list = []
+    for id, file_path in enumerate(files, start=1):
+        name = file_path.stem
+        test_data_list.append(TestData(id, project_name=name))
+    return test_data_list

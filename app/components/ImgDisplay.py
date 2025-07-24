@@ -41,11 +41,16 @@ class ImgDisplay(ft.Container):
             size=14,
             weight=ft.FontWeight.BOLD
         )
+        self.mouse_follower_color_block = ft.Container(
+            width=10,
+            height=10,
+            bgcolor=AppColors.LIGHT_BLUE,
+        )
         self.mouse_follower_container = ft.Container(
-            content=self.mouse_follower_text_content,
+            content=ft.Row([self.mouse_follower_color_block,self.mouse_follower_text_content]),
             left=0,
             top=0,
-            bgcolor=ft.Colors.with_opacity(.6, AppColors.DARK),
+            bgcolor=ft.Colors.with_opacity(.8, AppColors.DARK),
             padding=ft.padding.symmetric(horizontal=10, vertical=5),
             border_radius=ft.border_radius.all(5),
             blur=5,
@@ -145,5 +150,5 @@ class ImgDisplay(ft.Container):
         hex_color = get_hex(rgb)
 
         self.mouse_follower_text_content.value = f"RGB: {rgb}"
-        self.mouse_follower_text_content.color = hex_color
-        self.mouse_follower_text_content.update()
+        self.mouse_follower_color_block.bgcolor = hex_color
+        self.mouse_follower_container.update()

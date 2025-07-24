@@ -7,6 +7,8 @@ import asyncio
 
 
 can_start = False
+max_retries = 10
+retry_delay = 2
 
 
 def on_open(ws):
@@ -22,14 +24,36 @@ class Coollab:
     _future: asyncio.Future
 
     def __init__(self, host: str = "127.0.0.1", port: int = 12345) -> None:
-        self._ws = websocket.WebSocketApp(
-            f"ws://{host}:{port}", on_open=on_open, on_message=self._on_message
-        )
-        thread = threading.Thread(target=self._ws.run_forever)
-        thread.daemon = True
-        thread.start()
-        while not can_start:  # Wait until websocket connection is created
-            pass
+        global can_start
+        can_start = False
+
+        try_nb = 0
+        while not can_start and try_nb < max_retries:
+            if try_nb != 0:
+                print(f"[COOLLAB WARN] Attempt {try_nb} failed, retrying...")
+                self._ws.close()
+            try_nb += 1
+            self.start_websocket(host, port)
+            waited = 0
+            while not can_start and waited < retry_delay:
+                sleep(0.1)
+                waited += 0.1
+
+        if not can_start:
+            raise ConnectionError("[COOLLAB ERROR] Could not connect to server after multiple attempts.")
+
+        
+    def start_websocket(self, host: str, port: int):
+        try:
+            self._ws = websocket.WebSocketApp(
+                f"ws://{host}:{port}", on_open=on_open, on_message=self._on_message
+            )
+            thread = threading.Thread(target=self._ws.run_forever)
+            thread.daemon = True
+            thread.start()
+
+        except Exception as e:
+            print(f"[COOLLAB ERROR] Exception during connection :",e)
 
     def _send_command(self, command: str, params: dict):
         params["command"] = command

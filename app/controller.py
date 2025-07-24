@@ -216,6 +216,7 @@ class Controller:
                 print("[INFO] Relaunching test :", test_data.name)
                 self.reset_ui_on_relaunch(test_data)
                 test_data.reset()
+                test_data.status = TestStatus.IN_PROGRESS
                 self.test_panel.project_section.update_tile(test_data)
                 self.export_queue_num += 1
                 await self.launch_export(self.coollab, test_data, "exp")
@@ -253,6 +254,7 @@ class Controller:
                 print("[INFO] Reinitializing test ref :", test_data.name)
                 self.reset_ui_on_relaunch(test_data)
                 test_data.reset()
+                test_data.status = TestStatus.IN_PROGRESS
                 self.test_panel.project_section.update_tile(test_data)
                 self.export_queue_num += 1
                 await self.launch_export(self.coollab, test_data, "ref")
@@ -265,22 +267,19 @@ class Controller:
     async def launch_export(self, 
                             coollab: Coollab, 
                             test_data: TestData, 
-                            folder: str | None  = None, 
-                            height: int | None = None, 
+                            folder: str | None  = None,
+                            height: int | None = None,
                             width: int | None = None
     ):
         project_path = test_data.get_project_file_path()
         folder_path = (Path("assets/img") if folder is None else Path("assets/img") / folder).resolve()
 
         img_reference = load_img(test_data.get_ref_file_path())
-        if img_reference is None or img_reference.ndim < 2:
-            raise ValueError("Ref image not loaded for export")
-        # if height is None or width is None:
-        # img_height, img_width = img_reference.shape[:2]
-        if height is None:
-            height = img_reference.shape[0]
-        if width is None:
-            width = img_reference.shape[1]
+        if img_reference is not None:
+            if height is None:
+                height = img_reference.shape[0]
+            if width is None:
+                width = img_reference.shape[1]
         
         if project_path.exists():
             await coollab.open_project(str(project_path))

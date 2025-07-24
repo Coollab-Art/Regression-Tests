@@ -8,10 +8,10 @@ from pathlib import Path
 # UTILS
 ###########################
 
-def load_img(path: Path) -> np.ndarray:
+def load_img(path: Path) -> np.ndarray | None:
     img = cv2.imread(path)
-    if img is None:
-        raise FileNotFoundError(f"Image not found at {path}")
+    # if img is None:
+    #     raise FileNotFoundError(f"Image not found at {path}")
     return img
 
 def load_img_from_assets(img_name: str, img_folder: str | None = None) -> np.ndarray:
