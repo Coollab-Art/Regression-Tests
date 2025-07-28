@@ -16,7 +16,7 @@ class TestPanel(ft.Container):
         self.path_section = TestPathForm(self.controller, submit_text="Launch All Tests", submit_action=self.controller.launch_all_tests)
         self.progress_bar = ft.ProgressBar(value=0.005, expand=True, height=5, bgcolor=AppColors.DARK)
         self.project_section = TestList(self.controller)
-        self.counter_section = TestFooter(self.controller)
+        self.footer_section = TestFooter(self.controller)
 
         self._build()
     
@@ -28,7 +28,7 @@ class TestPanel(ft.Container):
                 ft.Divider(height=1, color=AppColors.DARK, thickness=1),
                 self.project_section,
                 ft.Divider(height=1, color=AppColors.DARK, thickness=1),
-                self.counter_section,
+                self.footer_section,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
             expand=True,
@@ -45,7 +45,7 @@ class TestPanel(ft.Container):
     
     def disable_controls(self):
         self.path_section.disable_controls()
-        self.counter_section.disable_controls()
+        self.footer_section.disable_controls()
     def enable_controls(self):
         self.path_section.enable_controls()
-        self.counter_section.enable_controls()
+        self.footer_section.enable_controls()

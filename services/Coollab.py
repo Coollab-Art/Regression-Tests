@@ -74,6 +74,10 @@ class Coollab:
             )  # TODO use command_id to know which future to set
         elif d["event"] == "ImageExportStarted":
             self._loop.call_soon_threadsafe(self._future.set_result, None)
+        elif d["event"] == "GetVersionName":
+            self._loop.call_soon_threadsafe(
+                self._future.set_result, d["version_name"]
+            )
 
     # Starts the export, it only only be finished a lot later, and then the callback on_image_export_finished() will be called
     async def start_image_export(
@@ -87,6 +91,8 @@ class Coollab:
         export_file_overwrite: bool = False,
     ) -> None:
         print(f"Exporting image : {filename}")
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
         self._send_command(
             "ExportImage",
             {
@@ -99,8 +105,6 @@ class Coollab:
                 "export_file_overwrite": export_file_overwrite,
             },
         )
-        self._loop = asyncio.get_running_loop()
-        self._future = self._loop.create_future()
         await self._future
 
     def log(self, title: str, content: str) -> None:
@@ -120,15 +124,26 @@ class Coollab:
             },
         )
 
+    async def get_version_name(self) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
+        self._send_command(
+            "GetVersionName",
+            {
+                # "param1": False,
+            },
+        )
+        return await self._future
+
     async def open_project(self, path: str) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
         self._send_command(
             "OpenProject",
             {
                 "path": path,
             },
         )
-        self._loop = asyncio.get_running_loop()
-        self._future = self._loop.create_future()
         await self._future
 
     def on_image_export_finished(self, callback: Callable[[], None]) -> None:

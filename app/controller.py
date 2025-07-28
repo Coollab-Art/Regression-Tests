@@ -116,7 +116,7 @@ class Controller:
             self.image_panel.image_section.reset()
     # Reset progression
         self.decrement_progress_bar()
-        self.test_panel.counter_section.decrement_current()
+        self.test_panel.footer_section.decrement_current()
 
     def reset_all_test_tiles(self):
         if self.test_panel:
@@ -154,6 +154,14 @@ class Controller:
             self.coollab.close_app()
             self.coollab = None
         await self.try_start_coollab(path)
+    
+    async def update_coollab_version(self):
+        if self.coollab:
+            version_name = await self.coollab.get_version_name()
+            if self.test_panel:
+                self.test_panel.footer_section.update_coollab_version_name(version_name)
+        else:
+            print("[ERROR] Coollab connection not established")
 
 # --------------------------------------
 # Tests
@@ -161,7 +169,7 @@ class Controller:
 
     async def check_tests_validity(self):
         if self.test_panel:
-            self.test_panel.counter_section.update_size(len(self.tests))
+            self.test_panel.footer_section.update_size(len(self.tests))
             self.test_panel.path_section.disable_controls()
             self.test_panel.update_progress(0.005)
 
@@ -193,7 +201,7 @@ class Controller:
         if self.test_panel:
             self.test_panel.path_section.disable_controls()
             self.test_panel.update_progress(0.005)
-            self.test_panel.counter_section.reset_current()
+            self.test_panel.footer_section.reset_current()
 
             self.reset_all_test_tiles()
             
@@ -338,6 +346,6 @@ class Controller:
         if self.test_panel:
             self.test_panel.project_section.update_tile(test_data)
             self.increment_progress_bar()
-            self.test_panel.counter_section.increment_current()
+            self.test_panel.footer_section.increment_current()
         self.export_queue_num -= 1
 

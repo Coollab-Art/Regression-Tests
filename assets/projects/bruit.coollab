@@ -251,7 +251,7 @@
                                 "id": 2147483657,
                                 "data": {
                                     "Base Module": {
-                                        "Name": "Compositing 2",
+                                        "Name": "Compositing 4",
                                         "Dirty Flag: needs to rerender": {
                                             "Is dirty": {
                                                 "ptr_wrapper": {
@@ -16100,7 +16100,7 @@
             }
         },
         "Shared Aspect Ratio": {
-            "Aspect Ratio": 137.75,
+            "Aspect Ratio": 1.114173173904419,
             "Fill the View": true
         },
         "3D Model export settings": {

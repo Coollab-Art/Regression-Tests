@@ -41,6 +41,7 @@ def main(page: ft.Page):
         # controller.coollab = Coollab()
         await hide_loading()
         display_app(page, controller)
+        await controller.update_coollab_version()
         controller.init_test_tiles()
         await controller.check_tests_validity()
         controller.update_all_test_tiles()
