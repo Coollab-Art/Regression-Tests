@@ -1,6 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 from time import sleep
+from typing import Callable
 from pathlib import Path
 from slugify import slugify
 from services.coollab_handler import start_coollab
@@ -173,12 +174,11 @@ class Controller:
             self.test_panel.path_section.disable_controls()
             self.test_panel.update_progress(0.005)
 
-        self.coollab.on_image_export_finished(self.update_status_on_export_finished)
         for test_data in self.tests:
             if not ref_file_exist(test_data):
                 self.export_queue_num += 1
                 print("[INFO] Reference image for test '", test_data.name, "' does not exist.")
-                await self.launch_export(self.coollab, test_data, "ref")
+                await self.launch_export(test_data, folder="ref", callable=self.update_status_on_export_finished)
             else:
                 test_data.status = TestStatus.READY
                 # if self.test_panel:
@@ -205,10 +205,9 @@ class Controller:
 
             self.reset_all_test_tiles()
             
-            self.coollab.on_image_export_finished(self.process_test_on_export_finished)
             for test_data in self.tests:
                 self.export_queue_num += 1
-                await self.launch_export(self.coollab, test_data, "exp")
+                await self.launch_export(test_data, folder="exp", callback=self.process_test_on_export_finished)
 
             while self.export_queue_num > 0:
                 print(f"[WAITING] Waiting for queue to be empty. Current num : {self.export_queue_num}")
@@ -218,7 +217,6 @@ class Controller:
                 self.test_panel.update_progress(1)
 
     async def relaunch_test(self, test_id: int):
-        self.coollab.on_image_export_finished(self.process_test_on_export_finished)
         for test_data in self.tests:
             if test_data.id == test_id:
                 print("[INFO] Relaunching test :", test_data.name)
@@ -227,7 +225,7 @@ class Controller:
                 test_data.status = TestStatus.IN_PROGRESS
                 self.test_panel.project_section.update_tile(test_data)
                 self.export_queue_num += 1
-                await self.launch_export(self.coollab, test_data, "exp")
+                await self.launch_export(test_data, folder="exp", callback=self.process_test_on_export_finished)
                 break
 
     async def update_all_tests_ref(self):
@@ -243,10 +241,9 @@ class Controller:
 
             self.reset_all_test_tiles()
             
-            self.coollab.on_image_export_finished(self.update_status_on_export_finished)
             for test_data in self.tests:
                 self.export_queue_num += 1
-                await self.launch_export(self.coollab, test_data, "ref")
+                await self.launch_export(test_data, folder="ref", callback=self.update_status_on_export_finished)
 
             while self.export_queue_num > 0:
                 print(f"[WAITING] Waiting for queue to be empty. Current num : {self.export_queue_num}")
@@ -256,7 +253,6 @@ class Controller:
                 self.test_panel.update_progress(1)
             
     async def update_test_ref(self, test_id: int):
-        self.coollab.on_image_export_finished(self.update_status_on_export_finished)
         for test_data in self.tests:
             if test_data.id == test_id:
                 print("[INFO] Reinitializing test ref :", test_data.name)
@@ -265,7 +261,7 @@ class Controller:
                 test_data.status = TestStatus.IN_PROGRESS
                 self.test_panel.project_section.update_tile(test_data)
                 self.export_queue_num += 1
-                await self.launch_export(self.coollab, test_data, "ref")
+                await self.launch_export(test_data, folder="ref", callback=self.update_status_on_export_finished)
                 break
 
 # # --------------------------------------
@@ -273,11 +269,11 @@ class Controller:
 # # --------------------------------------
 
     async def launch_export(self, 
-                            coollab: Coollab, 
                             test_data: TestData, 
                             folder: str | None  = None,
                             height: int | None = None,
-                            width: int | None = None
+                            width: int | None = None,
+                            callback: Callable[[], None] | None = None
     ):
         project_path = test_data.get_project_file_path()
         folder_path = (Path("assets/img") if folder is None else Path("assets/img") / folder).resolve()
@@ -290,8 +286,8 @@ class Controller:
                 width = img_reference.shape[1]
         
         if project_path.exists():
-            await coollab.open_project(str(project_path))
-            await coollab.start_image_export(
+            await self.coollab.open_project(str(project_path))
+            await self.coollab.start_image_export(
                 width,
                 height,
                 folder= str(folder_path.resolve()),
@@ -299,6 +295,7 @@ class Controller:
                 extension=None,
                 project_autosave=False,
                 export_file_overwrite=True,
+                on_image_export_finished=callback
             )
         
     def find_test_from_file_path(self, absolute_path: str) -> TestData | None:

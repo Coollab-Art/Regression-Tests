@@ -53,7 +53,7 @@ if __name__ == "__main__":
     try:
         ft.app(target=main, assets_dir="assets")
     finally:
-        if controller and getattr(controller, "coollab", None):
+        if controller and controller.coollab is not None:
             controller.coollab.close_app()
         for file in export_folder.iterdir():
             if file.is_file():
